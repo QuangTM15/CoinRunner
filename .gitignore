@@ -1,8 +1,24 @@
-/build/
-*.exe
-*.o
-*.obj
+# Build folders
+build/
+cmake-build*/
+out/
+
+# SFML binaries / libs (không push thư viện)
+sfml*/
 *.dll
+*.lib
+*.a
+*.pdb
+
+# OS files
 .DS_Store
 Thumbs.db
-.vscode/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+
+# Executables
+*.exe
+*.out
+*.app

@@ -3,10 +3,17 @@
 #include <iostream>
 
 Player::Player() {
-    body.setSize({50.f, 50.f});
+    body.setSize({Config::TILE_SIZE, Config::TILE_SIZE});
     body.setFillColor(sf::Color::Green);
     body.setOrigin(body.getSize() / 2.f);
     body.setPosition({100.f, 100.f});
+
+    speed = Config::PLAYER_SPEED;
+    jumpHeight = Config::PLAYER_JUMP_HEIGHT;
+    gravity = Config::PLAYER_GRAVITY;
+    maxFallSpeed = Config::PLAYER_MAX_FALL_SPEED;
+    health = Config::PLAYER_HEALTH;
+    trapCooldown = Config::TRAP_COOLDOWN;
 
     velocity = {0.f, 0.f};
 }
@@ -37,18 +44,19 @@ void Player::handleInput(float dt) {
     else {
         velocity.x = 0.f; 
     }
-
     // nhảy
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)|| sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)
-        || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
-        if(!spaceHeld) {
-            jump();
-            spaceHeld = true;
-        }
-        else {
-            spaceHeld=false;
-        }
+    bool wantJump = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) ||
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
+                    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up);
+    if (wantJump && !spaceHeld) {
+        jump();
+        spaceHeld = true;
     }
+
+    if (!wantJump) {
+        spaceHeld = false;
+    }
+
 }
 
 void Player::applyGravity(float dt) {
@@ -84,8 +92,18 @@ void Player::jump() {
 }
 
 sf::Rect<float> Player::getBounds() const {
-    return sf::Rect<float>{ body.getPosition(), body.getSize() };
+    sf::Vector2f pos = body.getPosition();
+    sf::Vector2f size = body.getSize();
+
+    sf::Rect<float> temp;
+    temp.position.x   = pos.x - size.x / 2.f;
+    temp.position.y   = pos.y - size.y / 2.f;
+    temp.size.x  = size.x;
+    temp.size.y = size.y;
+
+    return temp;
 }
+
 
 sf::Vector2f Player::getPosition() const {
     return body.getPosition();

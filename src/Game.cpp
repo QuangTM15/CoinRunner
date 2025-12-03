@@ -75,12 +75,11 @@ void Game::update(float dt) {
     }
 
     // kiểm tra trap
+    bool onAnyTrap = false;
     for (auto& trap : tileMap.traps) {
         if (trap.checkHit(player.getBounds())) {
             player.hitTrap();
-        }
-        else {
-            player.resetHitTrap();
+            onAnyTrap = true; // đang chạm trap
         }
     }
 

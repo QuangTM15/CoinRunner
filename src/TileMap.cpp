@@ -61,43 +61,43 @@ void TileMap::draw(sf::RenderWindow& window) {
     for (auto& trap : traps) trap.draw(window);
 }
 
-// Kiểm tra va chạm với player (với ground)
 sf::Vector2f TileMap::checkCollision(const sf::Rect<float>& playerBounds, const sf::Vector2f& playerVelocity) {
-    sf::Vector2f correction{0.f, 0.f};
+    sf::Vector2f totalCorrection{0.f, 0.f};
 
     for (size_t y = 0; y < mapLayout.size(); y++) {
         for (size_t x = 0; x < mapLayout[y].size(); x++) {
             if (mapLayout[y][x] != '#') continue;
 
-            // tạo tile Rect
             sf::Rect<float> tileRect;
             tileRect.position = { x * tileSize, y * tileSize };
             tileRect.size = { tileSize, tileSize };
 
-            // AABB collision
-            bool intersectX = playerBounds.position.x < tileRect.position.x + tileRect.size.x &&
-                              playerBounds.position.x + playerBounds.size.x > tileRect.position.x;
-            bool intersectY = playerBounds.position.y < tileRect.position.y + tileRect.size.y &&
-                              playerBounds.position.y + playerBounds.size.y > tileRect.position.y;
+            // AABB collision check
+            bool intersectX = playerBounds.position.x + playerBounds.size.x > tileRect.position.x &&
+                              playerBounds.position.x < tileRect.position.x + tileRect.size.x;
+            bool intersectY = playerBounds.position.y + playerBounds.size.y > tileRect.position.y &&
+                              playerBounds.position.y < tileRect.position.y + tileRect.size.y;
 
-            if (intersectX && intersectY) {
-                // rơi xuống (player đang đi xuống)
-                if (playerVelocity.y > 0.f) {
-                    float overlapY = (playerBounds.position.y + playerBounds.size.y) - tileRect.position.y;
-                    if (overlapY > 0.f && overlapY > correction.y) {
-                        correction.y = -overlapY;   // đẩy player lên
-                    }
-                }
-                // nhảy lên (player đang đi lên)
-                else if (playerVelocity.y < 0.f) {
-                    float overlapY = (tileRect.position.y + tileRect.size.y) - playerBounds.position.y;
-                    if (overlapY > 0.f && -overlapY < correction.y) {
-                        correction.y = overlapY;    // đẩy player xuống
-                    }
-                }
+            if (!intersectX || !intersectY) continue;
+
+            // Calculate overlap
+            float overlapLeft   = (playerBounds.position.x + playerBounds.size.x) - tileRect.position.x;
+            float overlapRight  = (tileRect.position.x + tileRect.size.x) - playerBounds.position.x;
+            float overlapTop    = (playerBounds.position.y + playerBounds.size.y) - tileRect.position.y;
+            float overlapBottom = (tileRect.position.y + tileRect.size.y) - playerBounds.position.y;
+
+            // Choose smallest overlap for each axis
+            float xCorrection = (overlapLeft < overlapRight) ? -overlapLeft : overlapRight;
+            float yCorrection = (overlapTop < overlapBottom) ? -overlapTop : overlapBottom;
+
+            // Apply the axis with the smaller overlap first
+            if (std::abs(xCorrection) < std::abs(yCorrection)) {
+                totalCorrection.x += xCorrection;
+            } else {
+                totalCorrection.y += yCorrection;
             }
         }
     }
 
-    return correction;
+    return totalCorrection;
 }

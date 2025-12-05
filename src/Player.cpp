@@ -3,6 +3,7 @@
 #include <iostream>
 
 Player::Player()
+    : sprite(texIdle)
 {
     // --- LOAD TEXTURE ---
     texIdle.loadFromFile("asset/textures/player/Player_Idle.png");

@@ -1,25 +1,20 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <string>
-#include "Coin.hpp"
-#include "Trap.hpp"
+#include <vector>
+#include "TileSetInfo.hpp"
 
-class TileMap {
-private:
-    std::vector<std::string> mapLayout; // text map
-    float tileSize = 50.f;
-    sf::RectangleShape tileShape;
-
+class TileMap : public sf::Drawable {
 public:
-    std::vector<Coin> coins;
-    std::vector<Trap> traps;
+    TileMap() = default;
+    bool loadFromFile(const std::string& mapFile, float tileSize);
 
-    TileMap();
+private:
+    float mapWidth = 0, mapHeight = 0;
+    float tileSize = 0;
 
-    void loadDemoMap(); // load map text, tạo tile / coin / trap
-    void draw(sf::RenderWindow& window);
-    
-    // Kiểm tra collision với player, trả correction vector
-    sf::Vector2f checkCollision(const sf::Rect<float>& playerBounds, const sf::Vector2f& playerVelocity);
+    std::vector<TilesetInfo> tilesets;
+    std::vector<sf::Sprite> tiles;
+
+    virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };

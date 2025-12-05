@@ -8,7 +8,9 @@
             "args": [
                 "${workspaceFolder}/src/*.cpp",
 
+                "-I${workspaceFolder}/include",
                 "-IC:/Users/-Asus/Downloads/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2/include",
+
                 "-LC:/Users/-Asus/Downloads/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2/lib",
 
                 "-lsfml-graphics",

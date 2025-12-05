@@ -8,7 +8,7 @@
             "program": "${workspaceFolder}/build/CoinRunner.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build",
+            "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

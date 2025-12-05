@@ -12,16 +12,14 @@ TilesetInfo loadTsx(const std::string& tsxPath, int firstgid)
     TilesetInfo info;
     info.firstgid = firstgid;
 
-    std::cout << "\n[TSX] Loading TSX: " << tsxPath << "\n";
-
     std::ifstream f(tsxPath);
     if (!f.is_open()) {
-        std::cout << "[TSX] ❌ Cannot open TSX: " << tsxPath << "\n";
+        std::cout << "[TSX] ❌ Cannot open TSX file: " << tsxPath << "\n";
         return info;
     }
 
     std::string xml((std::istreambuf_iterator<char>(f)), {});
-    std::cout << "[TSX] XML size = " << xml.size() << " bytes\n";
+
 
     // columns
     size_t posCol = xml.find("columns=\"");
@@ -61,7 +59,7 @@ TilesetInfo loadTsx(const std::string& tsxPath, int firstgid)
     return info;
 }
 
-// -------- LOAD JSON MAP --------
+// -------- LOAD MAP --------
 bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
 {
     std::cout << "\n[MAP] Loading map: " << mapFile << "\n";
@@ -81,16 +79,14 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
     mapHeight = j["height"];
     std::cout << "[MAP] Size = " << mapWidth << " x " << mapHeight << "\n";
 
-
     tilesets.clear();
-
     std::filesystem::path mapDir = std::filesystem::path(mapFile).parent_path();
-
-
+    // =========================
+    //      LOAD TILESET
+    // =========================
     for (auto& ts : j["tilesets"]) {
         int firstgid = ts["firstgid"];
         std::string tsxPath = (mapDir / ts["source"].get<std::string>()).string();
-
         tilesets.push_back(loadTsx(tsxPath, firstgid));
     }
 
@@ -99,7 +95,6 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             return a.firstgid < b.firstgid;
         });
 
-    
     auto getTileset = [&](int gid) -> const TilesetInfo*
     {
         const TilesetInfo* t = nullptr;
@@ -111,6 +106,9 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
         return t;
     };
 
+    // =========================
+    //      LOAD TILE LAYERS
+    // =========================
     tiles.clear();
 
     for (auto& layer : j["layers"])
@@ -130,11 +128,9 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             if (!ts) continue;
 
             int local = gid - ts->firstgid;
-
             int tx = local % ts->columns;
             int ty = local / ts->columns;
 
-            // --- SPRITE SFML 3 ---
             sf::Sprite sprite(ts->texture);
 
             sprite.setTextureRect(sf::IntRect(
@@ -148,6 +144,78 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             ));
 
             tiles.push_back(sprite);
+        }
+    }
+
+    // =========================
+    //      LOAD OBJECTS
+    // =========================
+    spawnPoint = {0.f, 0.f};
+    ladderAreas.clear();
+    killzones.clear();
+    checkpoints.clear();
+    trapDamages.clear();
+    coins.clear();
+    spiders.clear();
+
+    for (auto& layer : j["layers"])
+    {
+        if (layer["type"] != "objectgroup") continue;
+
+        for (auto& obj : layer["objects"])
+        {
+            std::string type = obj.value("type", "");
+
+            float x = obj.value("x", 0.f);
+            float y = obj.value("y", 0.f);
+            float w = obj.value("width", 0.f);
+            float h = obj.value("height", 0.f);
+
+            sf::Vector2f pos(x, y - h);
+            sf::Vector2f size(w, h);
+            sf::Rect<float> rect(pos, size);
+
+            int gid = obj.value("gid", 0);
+
+            if (type == "spawn")
+                spawnPoint = pos;
+            else if (type == "LadderArea")
+                ladderAreas.push_back(rect);
+            else if (type == "killzone")
+                killzones.push_back(rect);
+            else if (type == "checkpoint")
+                checkpoints.push_back(rect);
+            else if (type == "coin")
+            {
+                MapObject c;
+                c.rect = rect;
+                c.gid = gid;
+                coins.push_back(c);
+            }
+            else if (type == "trap_damage")
+            {
+                MapObject t;
+                t.rect = rect;
+                t.gid = gid;
+
+                if (obj.contains("properties"))
+                    for (auto& p : obj["properties"])
+                        t.floatProps[p["name"]] = p["value"];
+
+                trapDamages.push_back(t);
+            }
+            else if (type == "spider")
+            {
+                MapObject s;
+                s.rect = rect;
+                s.gid = gid;
+
+                if (obj.contains("properties"))
+                    for (auto& p : obj["properties"])
+                        s.floatProps[p["name"]] = p["value"];
+
+                spiders.push_back(s);
+            }
         }
     }
 

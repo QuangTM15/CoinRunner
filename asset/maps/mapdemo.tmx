@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="150" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="71">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="150" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="6" nextobjectid="74">
  <editorsettings>
   <export target="mapdemo.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="../textures/map/Main_Tile.tsx"/>
  <tileset firstgid="257" source="../textures/map/platforms.tsx"/>
  <tileset firstgid="273" source="../textures/items/Coin.tsx"/>
+ <tileset firstgid="285" source="../textures/enemies/Enemy.tsx"/>
  <layer id="1" name="background" width="150" height="20">
   <data encoding="csv">
 145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,145,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -108,7 +109,7 @@
   <object id="7" type="killzone" x="206.667" y="302.667" width="210" height="16"/>
   <object id="8" type="checkpoint" x="622.667" y="239.333" width="18.6667" height="16.6667"/>
   <object id="55" gid="156" x="289" y="128.5" width="16" height="16"/>
-  <object id="60" gid="104" x="288.5" y="126" width="16" height="16">
+  <object id="60" type="trap_damage" gid="104" x="288.5" y="126" width="16" height="16">
    <properties>
     <property name="damage" type="float" value="1"/>
     <property name="timeDamage" type="float" value="1"/>
@@ -119,5 +120,11 @@
   <object id="66" type="coin" gid="273" x="334" y="94" width="16" height="16"/>
   <object id="67" type="coin" gid="273" x="481" y="241" width="16" height="16"/>
   <object id="68" type="coin" gid="273" x="512" y="82" width="16" height="16"/>
+  <object id="73" type="spider" gid="300" x="572" y="254.667" width="16" height="16">
+   <properties>
+    <property name="range" type="float" value="4"/>
+    <property name="speed" type="float" value="2"/>
+   </properties>
+  </object>
  </objectgroup>
 </map>

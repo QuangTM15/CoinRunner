@@ -10,7 +10,7 @@
 //     camera.setSize({static_cast<float>(windowWidth), static_cast<float>(windowHeight)});
 //     window.setView(camera);
 
-//     tileMap.loadDemoMap();
+//     tileMap.loadFromFile("assets/maps/map1.json",16.f);
 // }
 
 // void Game::run() {

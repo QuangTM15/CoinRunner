@@ -1,43 +1,88 @@
 #pragma once
-#include <string>
 #include <SFML/Graphics.hpp>
-#include "config.hpp"
+#include "Config.hpp"
+#include <bits/stdc++.h>
 
 class Player {
-    private:
-        sf::RectangleShape body;
-        sf::Vector2f velocity;
-    
-        float speed;
-        float jumpHeight;
-        float gravity;
-        float maxFallSpeed;
+public:
+    Player();
 
-        bool canJump = true;
-        bool spaceHeld = false;
-        bool alive = true;
-        bool justHitTrap = false;  // tránh trừ máu liên tục khi chạm trap
-        float trapCooldown; // thời gian delay giữa các lần trúng trap (giây)
-        float trapTimer = 0.f;      // bộ đếm
+    void update(float dt);
+    void handleInput(float dt);
+    void applyGravity(float dt);
 
-    public:
-        Player();
-        void update(float dt);
-        void handleInput(float dt);
-        void applyGravity(float dt);
-        void move(const sf::Vector2f& movement);
-        void correctPosition(const sf::Vector2f& correction);
+    void setPosition(const sf::Vector2f& pos);
+    sf::Vector2f getPosition() const;
 
-        void draw(sf::RenderWindow& window);
+    sf::Rect<float> getBounds() const;
+    sf::Vector2f getVelocity() const { return velocity; }
 
-        sf::Rect<float> getBounds() const;
-        sf::Vector2f getPosition() const;
-        void setPosition(const sf::Vector2f& pos);
-        void jump();
-        int health = 100;
-        bool isAlive() const { return alive; }
-        void setDead() { alive = false; }
-        sf::Vector2f getVelocity() const { return velocity; }
-        void hitTrap();
-        void updateTrapTimer(float dt);
+    void correctPosition(const sf::Vector2f& correction);
+
+    void draw(sf::RenderWindow& window);
+
+    // Trap xử lý
+    void hitTrapDamage(); // nấm
+    void hitSpider();     // nhện
+    void updateTrapTimer(float dt);
+
+    // Ladder
+    void setOnLadder(bool v) { isOnLadder = v; }
+    bool getOnLadder() const { return isOnLadder; }
+
+    // HP + Life
+    int hp = 5;
+    int maxHP = 5;
+    int life = 3;
+
+    bool isAlive() const { return alive; }
+    void respawn(const sf::Vector2f& pos);
+
+private:
+
+    // --- Animation ---
+    enum class State { Idle, Run, Jump, Fall };
+    State state = State::Idle;
+
+    sf::Texture texIdle;
+    sf::Texture texRun;
+    sf::Texture texJump;
+
+    sf::Sprite sprite;
+    // body is only for collision detection
+    float scale = 2.f;
+
+    int frame = 0;
+    float frameTimer = 0.f;
+
+    // số frame mỗi trạng thái
+    int idleFrames = 4;
+    int runFrames = 8;
+    int jumpFrames = 6;
+
+    float idleFPS = 6.f;
+    float runFPS = 10.f;
+
+    void updateAnimation(float dt);
+    void setState(State newState);
+
+private:
+    // physics
+    sf::Vector2f velocity;
+
+    float speed;
+    float jumpHeight;
+    float gravity;
+    float maxFallSpeed;
+
+    bool spaceHeld = false;
+    bool canJump = true;
+    bool isOnLadder = false;
+
+    bool alive = true;
+
+    // trap damage
+    bool justHitTrap = false;
+    float trapCooldown;
+    float trapTimer = 0.f;
 };

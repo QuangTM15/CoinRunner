@@ -3,30 +3,40 @@
 #include <iostream>
 
 Player::Player()
-    : sprite(texIdle)
+    : texIdle()
+    , texRun()
+    , texJump()
+    , sprite(texIdle)
 {
-    // --- LOAD TEXTURE ---
-    texIdle.loadFromFile("asset/textures/player/Player_Idle.png");
-    texRun.loadFromFile("asset/textures/player/Player_Run.png");
-    texJump.loadFromFile("asset/textures/player/Player_Jump.png");
+    // --- LOAD TEXTURE (check lỗi 1 lần thôi) ---
+    if (!texIdle.loadFromFile("asset/textures/player/Player_Idle.png"))
+        std::cout << "[ERR] Cannot load idle texture\n";
+
+    if (!texRun.loadFromFile("asset/textures/player/Player_Run.png"))
+        std::cout << "[ERR] Cannot load run texture\n";
+
+    if (!texJump.loadFromFile("asset/textures/player/Player_Jump.png"))
+        std::cout << "[ERR] Cannot load jump texture\n";
 
     sprite.setTexture(texIdle);
-    sprite.setScale({scale, scale});
 
-    sprite.setOrigin({8, 8}); // frame 16x16 → origin center
+    // mỗi frame trong spritesheet là 32x32
+    // scale 2 → hiển thị 64x64, nhưng toạ độ vẫn tính theo pixel map (16x16 per tile)
+    scale = 1.5f;
+    sprite.setScale({scale, scale});
+    sprite.setOrigin({16.f, 16.f}); // center của frame 32x32
 
     // --- PHYSICS ---
-    speed = 120.f;
-    jumpHeight = 250.f;
-    gravity = 600.f;
-    maxFallSpeed = 500.f;
+    speed        = 80.f;     // tốc độ chạy
+    jumpHeight   = 100.f;    // độ cao nhảy
+    gravity      = 500.f;    // lực rơi (cao → rơi nhanh)
+    maxFallSpeed = 600.f;    // tốc độ rơi tối đa
 
-    velocity = {0.f, 0.f};
 
-    // trap damage timer
+
+    velocity     = {0.f, 0.f};
     trapCooldown = 1.0f;
 
-    // default spawn (sẽ được set từ Game)
     setPosition({100.f, 100.f});
     updateAnimation(0.f);
 }
@@ -41,15 +51,17 @@ sf::Vector2f Player::getPosition() const
     return sprite.getPosition();
 }
 
+// collider 20x28, nằm giữa frame 32x32
 sf::Rect<float> Player::getBounds() const
 {
     sf::Vector2f pos = sprite.getPosition();
-    float w = 16.f;
-    float h = 16.f;
+
+    float cw = 20.f;
+    float ch = 28.f;
 
     return sf::Rect<float>(
-        sf::Vector2f(pos.x - w/2, pos.y - h/2),
-        sf::Vector2f(w, h)
+        { pos.x - cw * 0.5f, pos.y - ch * 0.5f },
+        { cw, ch }
     );
 }
 
@@ -57,7 +69,6 @@ void Player::update(float dt)
 {
     handleInput(dt);
 
-    // gravity nếu không trèo thang
     if (!isOnLadder)
         applyGravity(dt);
     else
@@ -84,8 +95,8 @@ void Player::handleInput(float dt)
     velocity.x = dir * speed;
 
     // flip sprite
-    if (dir < 0) sprite.setScale({-scale, scale});
-    if (dir > 0) sprite.setScale({scale, scale});
+    if (dir < 0) facingLeft = true;
+    if (dir > 0) facingLeft = false;
 
     // Jump
     bool wantJump =
@@ -114,18 +125,31 @@ void Player::correctPosition(const sf::Vector2f& correction)
 {
     sprite.move(correction);
 
-    if (correction.y < 0) {
+    if (correction.y < 0.f) // đẩy từ trên xuống → đứng trên đất
+    {
         velocity.y = 0.f;
         canJump = true;
     }
-    else if (correction.y > 0) {
+    else if (correction.y > 0.f) // va trần
+    {
         velocity.y = 0.f;
+    }
+
+    if (correction.x != 0.f)
+    {
+        velocity.x = 0.f;
     }
 }
 
 void Player::draw(sf::RenderWindow& window)
 {
     window.draw(sprite);
+
+    // debug: dot tại tâm
+    sf::CircleShape dot(3.f);
+    dot.setFillColor(sf::Color::Red);
+    dot.setPosition(sprite.getPosition());
+    window.draw(dot);
 }
 
 // ----------------------
@@ -143,46 +167,50 @@ void Player::setState(State newState)
 void Player::updateAnimation(float dt)
 {
     // chọn state
-    if (!canJump && velocity.y < 0)
+    if (!canJump && velocity.y < 0.f)
         state = State::Jump;
-    else if (!canJump && velocity.y > 0)
+    else if (!canJump && velocity.y > 0.f)
         state = State::Fall;
     else if (std::abs(velocity.x) > 1.f)
         state = State::Run;
     else
         state = State::Idle;
 
+    // flip logic
+    if (velocity.x < 0) facingLeft = true;
+    if (velocity.x > 0) facingLeft = false;
+
     // Chọn texture + frame count
     const sf::Texture* tex = nullptr;
-    int maxFrames = 1;
-    float fps = 8.f;
+    int   maxFrames = 1;
+    float fps       = 8.f;
 
     switch (state)
     {
         case State::Idle:
-            tex = &texIdle;
+            tex       = &texIdle;
             maxFrames = idleFrames;
-            fps = idleFPS;
+            fps       = idleFPS;
             break;
 
         case State::Run:
-            tex = &texRun;
+            tex       = &texRun;
             maxFrames = runFrames;
-            fps = runFPS;
+            fps       = runFPS;
             break;
 
         case State::Jump:
         case State::Fall:
-            tex = &texJump;
+            tex       = &texJump;
             maxFrames = jumpFrames;
-            fps = 8.f;
+            fps       = 8.f;
             break;
     }
 
     sprite.setTexture(*tex);
 
-    const int frameW = 16;
-    const int frameH = 16;
+    const int frameW = 32;
+    const int frameH = 32;
 
     // cập nhật frame
     frameTimer += dt;
@@ -191,21 +219,35 @@ void Player::updateAnimation(float dt)
         frameTimer = 0.f;
         frame++;
 
-        // Jump/Fall giữ frame cuối
         if (frame >= maxFrames)
-            frame = (state == State::Jump || state == State::Fall)
-                  ? maxFrames - 1
-                  : 0;
+        {
+            if (state == State::Jump || state == State::Fall)
+                frame = maxFrames - 1;
+            else
+                frame = 0;
+        }
     }
 
-    // Pixel rectangle (SFML 3 dùng IntRect.position + size)
+    // -----------------------------
+    //   SET TEXTURE RECT (SFML 3)
+    // -----------------------------
     sf::IntRect rect;
-    rect.position = { frame * frameW, 0 };
-    rect.size     = { frameW, frameH };
+
+    if (!facingLeft)
+    {
+        // Hướng phải
+        rect.position = { frame * frameW, 0 };
+        rect.size     = { frameW, frameH };
+    }
+    else
+    {
+        // Hướng trái → mirror bằng size.x âm
+        rect.position = { (frame + 1) * frameW, 0 };
+        rect.size     = { -frameW, frameH };
+    }
 
     sprite.setTextureRect(rect);
 }
-
 
 // ----------------------
 //   DAMAGE & LIFE
@@ -245,7 +287,7 @@ void Player::updateTrapTimer(float dt)
         if (trapTimer >= trapCooldown)
         {
             justHitTrap = false;
-            trapTimer = 0.f;
+            trapTimer   = 0.f;
         }
     }
 }
@@ -254,6 +296,6 @@ void Player::respawn(const sf::Vector2f& pos)
 {
     sprite.setPosition(pos);
     velocity = {0.f, 0.f};
-    hp = maxHP;
-    alive = true;
+    hp       = maxHP;
+    alive    = true;
 }

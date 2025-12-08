@@ -1,7 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Config.hpp"
-#include <bits/stdc++.h>
+#include <unordered_map>
+static constexpr int SPRITE_W = 32;
+static constexpr int SPRITE_H = 32;
 
 class Player {
 public:
@@ -37,6 +39,7 @@ public:
 
     bool isAlive() const { return alive; }
     void respawn(const sf::Vector2f& pos);
+    bool facingLeft = false;
 
 private:
 

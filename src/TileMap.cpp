@@ -84,6 +84,7 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
     // =========================
     //      LOAD TILESET
     // =========================
+
     for (auto& ts : j["tilesets"]) {
         int firstgid = ts["firstgid"];
         std::string tsxPath = (mapDir / ts["source"].get<std::string>()).string();
@@ -146,6 +147,23 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             tiles.push_back(sprite);
         }
     }
+    // ================================
+    //      LOAD GROUND COLLISION LAYER
+    // ================================
+    for (auto& layer : j["layers"])
+    {
+        std::string lname = layer.value("name", "");
+
+        if (lname == "ground" && layer["type"] == "tilelayer")
+        {
+            groundTiles = layer["data"].get<std::vector<int>>();
+            tileWidth = j["tilewidth"];
+            tileHeight = j["tileheight"];
+
+            std::cout << "[GROUND] size = " << groundTiles.size()
+                    << " expected = " << (mapWidth * mapHeight) << "\n";
+        }
+    }
 
     // =========================
     //      LOAD OBJECTS
@@ -166,56 +184,55 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
         {
             std::string type = obj.value("type", "");
 
-            float x = obj.value("x", 0.f);
-            float y = obj.value("y", 0.f);
-            float w = obj.value("width", 0.f);
-            float h = obj.value("height", 0.f);
+        float x = obj.value("x", 0.f);
+        float y = obj.value("y", 0.f);
+        float w = obj.value("width", 0.f);
+        float h = obj.value("height", 0.f);
 
-            sf::Vector2f pos(x, y - h);
-            sf::Vector2f size(w, h);
-            sf::Rect<float> rect(pos, size);
+        // Tiled object origin = bottom-left
+        sf::Vector2f topLeft(x, y - h);
+        sf::Vector2f center(x + w * 0.5f, y - h * 0.5f);
 
-            int gid = obj.value("gid", 0);
+        sf::Vector2f size(w, h);
+        sf::Rect<float> rect(topLeft, size);
 
-            if (type == "spawn")
-                spawnPoint = pos;
-            else if (type == "LadderArea")
-                ladderAreas.push_back(rect);
-            else if (type == "killzone")
-                killzones.push_back(rect);
-            else if (type == "checkpoint")
-                checkpoints.push_back(rect);
-            else if (type == "coin")
-            {
-                MapObject c;
-                c.rect = rect;
-                c.gid = gid;
-                coins.push_back(c);
-            }
-            else if (type == "trap_damage")
-            {
-                MapObject t;
-                t.rect = rect;
-                t.gid = gid;
+        if (type == "spawn")
+            spawnPoint = { x, y };
+        else if (type == "LadderArea")
+            ladderAreas.push_back(rect);
+        else if (type == "killzone")
+            killzones.push_back(rect);
+        else if (type == "checkpoint")
+            checkpoints.push_back(rect);
+        else if (type == "coin") {
+            MapObject c;
+            c.rect = rect;
+            c.gid = obj.value("gid", 0);
+            coins.push_back(c);
+        }
+        else if (type == "trap_damage") {
+            MapObject t;
+            t.rect = rect;
+            t.gid = obj.value("gid", 0);
 
-                if (obj.contains("properties"))
-                    for (auto& p : obj["properties"])
-                        t.floatProps[p["name"]] = p["value"];
+            if (obj.contains("properties"))
+                for (auto& p : obj["properties"])
+                    t.floatProps[p["name"]] = p["value"];
 
-                trapDamages.push_back(t);
-            }
-            else if (type == "spider")
-            {
-                MapObject s;
-                s.rect = rect;
-                s.gid = gid;
+            trapDamages.push_back(t);
+        }
+        else if (type == "spider") {
+            MapObject s;
+            s.rect = rect;
+            s.gid = obj.value("gid", 0);
 
-                if (obj.contains("properties"))
-                    for (auto& p : obj["properties"])
-                        s.floatProps[p["name"]] = p["value"];
+            if (obj.contains("properties"))
+                for (auto& p : obj["properties"])
+                    s.floatProps[p["name"]] = p["value"];
 
-                spiders.push_back(s);
-            }
+            spiders.push_back(s);
+        }
+
         }
     }
 
@@ -227,4 +244,116 @@ void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     for (const auto& s : tiles)
         target.draw(s, states);
+}
+
+// -------- COLLISION SYSTEM --------
+
+sf::Vector2i TileMap::getTileCoords(int index) const
+{
+    int w = static_cast<int>(mapWidth); 
+    int x = index % w;
+    int y = index / w;
+    return {x, y};
+}
+
+bool TileMap::isSolid(int gid) const
+{
+    return gid != 0;
+}
+
+sf::Vector2f TileMap::checkCollision(const sf::Rect<float>& box, const sf::Vector2f& vel)
+{
+    sf::Vector2f fix(0.f, 0.f);
+
+    // ======================================================
+    // 1) KIỂM TRA VA CHẠM THEO TRỤC X
+    // ======================================================
+    if (vel.x != 0.f)
+    {
+        // dự đoán vị trí mới theo X
+        float newX = box.position.x + vel.x;
+
+        int left   = (int)std::floor(newX / tileWidth);
+        int right  = (int)std::floor((newX + box.size.x) / tileWidth);
+        int top    = (int)std::floor(box.position.y / tileHeight);
+        int bottom = (int)std::floor((box.position.y + box.size.y) / tileHeight);
+
+        float bestFix = 0.f;
+        bool collided = false;
+
+        for (int ty = top; ty <= bottom; ++ty)
+        for (int tx = left; tx <= right; ++tx)
+        {
+            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight) 
+                continue;
+
+            int gid = groundTiles[ty * mapWidth + tx];
+            if (!isSolid(gid)) 
+                continue;
+
+            collided = true;
+
+            if (vel.x > 0.f)
+            {
+                float nf = (tx * tileWidth) - (box.position.x + box.size.x);
+                if (std::abs(nf) < std::abs(bestFix) || bestFix == 0.f)
+                    bestFix = nf;
+            }
+            else
+            {
+                float nf = ((tx + 1) * tileWidth) - box.position.x;
+                if (std::abs(nf) < std::abs(bestFix) || bestFix == 0.f)
+                    bestFix = nf;
+            }
+        }
+
+        if (collided)
+            fix.x = bestFix;
+    }
+
+    // ======================================================
+    // 2) KIỂM TRA VA CHẠM THEO TRỤC Y
+    // ======================================================
+    if (vel.y != 0.f)
+    {
+        float newY = box.position.y + vel.y;
+
+        int left   = (int)std::floor(box.position.x / tileWidth);
+        int right  = (int)std::floor((box.position.x + box.size.x) / tileWidth);
+        int top    = (int)std::floor(newY / tileHeight);
+        int bottom = (int)std::floor((newY + box.size.y) / tileHeight);
+
+        float bestFix = 0.f;
+        bool collided = false;
+
+        for (int ty = top; ty <= bottom; ++ty)
+        for (int tx = left; tx <= right; ++tx)
+        {
+            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight)
+                continue;
+
+            int gid = groundTiles[ty * mapWidth + tx];
+            if (!isSolid(gid)) 
+                continue;
+
+            collided = true;
+
+            if (vel.y > 0.f) // rơi xuống
+            {
+                float nf = (ty * tileHeight) - (box.position.y + box.size.y);
+                if (std::abs(nf) < std::abs(bestFix) || bestFix == 0.f)
+                    bestFix = nf;
+            }
+            else // nhảy lên
+            {
+                float nf = ((ty + 1) * tileHeight) - box.position.y;
+                if (std::abs(nf) < std::abs(bestFix) || bestFix == 0.f)
+                    bestFix = nf;
+            }
+        }
+
+        if (collided)
+            fix.y = bestFix;
+    }
+    return fix;
 }

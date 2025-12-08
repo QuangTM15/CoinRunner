@@ -132,17 +132,6 @@
          "name":"objects",
          "objects":[
                 {
-                 "height":32,
-                 "id":1,
-                 "name":"",
-                 "rotation":0,
-                 "type":"spawn",
-                 "visible":true,
-                 "width":32,
-                 "x":0.666667,
-                 "y":224
-                }, 
-                {
                  "height":80,
                  "id":2,
                  "name":"",
@@ -291,7 +280,19 @@
                  "visible":true,
                  "width":16,
                  "x":572,
-                 "y":254.666666666667
+                 "y":254.667
+                }, 
+                {
+                 "height":0,
+                 "id":75,
+                 "name":"spawnpoint",
+                 "point":true,
+                 "rotation":0,
+                 "type":"spawn",
+                 "visible":true,
+                 "width":0,
+                 "x":17.3333333333333,
+                 "y":239.333333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -300,7 +301,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":74,
+ "nextobjectid":76,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

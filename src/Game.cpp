@@ -95,15 +95,25 @@ void Game::loadObjectsFromMap()
 // ------------------------------------------------
 void Game::run()
 {
+    sf::Clock clock;
+    float accumulator = 0.f;
+    const float fixedDt = 1.f / 60.f;   // update logic 60 lần/giây
+
     while (window.isOpen())
     {
         processEvents();
 
         float dt = clock.restart().asSeconds();
-        if (dt > 0.03f) dt = 0.03f;
+        accumulator += dt;
 
-        update(dt);
-        render();
+        // Update cố định, không phụ thuộc FPS
+        while (accumulator >= fixedDt)
+        {
+            update(fixedDt);       // 🔥 logic mượt tuyệt đối
+            accumulator -= fixedDt;
+        }
+
+        render();                  // render theo FPS không cố định
     }
 }
 
@@ -128,49 +138,33 @@ void Game::update(float dt)
 {
     player.update(dt);
 
-    // Tilemap collision
-    sf::Vector2f fix = tileMap.checkCollision(player.getBounds(), player.getVelocity());
-    player.correctPosition(fix);
+    sf::Vector2f vel = player.getVelocity();
+    sf::Vector2f move = vel * dt;
 
-    // Ladder detect
-    bool onLadder = false;
+    sf::Vector2f fix = tileMap.checkCollision(player.getBounds(), move);
+
+    player.applyMovement(move, fix);
+
+    // cập nhật pbox sau khi move
     sf::Rect<float> pbox = player.getBounds();
 
+    // ladder
+    bool onLadder = false;
     for (auto& r : tileMap.ladderAreas)
-    {
-        if (intersects(pbox, r))
-        {
-            onLadder = true;
-            break;
-        }
-    }
+        if (intersects(pbox, r)) onLadder = true;
     player.setOnLadder(onLadder);
 
-    // Update entity systems
+    // traps / coins / checkpoints...
     updateCoins(dt);
     updateTraps(dt);
     updateSpiders(dt);
 
-    // Killzones
     for (auto& r : tileMap.killzones)
-    {
         if (intersects(pbox, r))
-        {
-            player.hitSpider();  
             player.respawn(lastCheckpoint);
-        }
-    }
-
-    // Checkpoints
-    for (auto& r : tileMap.checkpoints)
-    {
-        if (intersects(pbox, r))
-            lastCheckpoint = r.position;
-    }
 
     updateCamera();
 }
-
 
 // ------------------------------------------------
 //  COINS

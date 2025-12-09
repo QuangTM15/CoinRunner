@@ -1,6 +1,7 @@
 #include "../include/Player.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
+#include <cmath>
 
 Player::Player()
     : texIdle()
@@ -22,15 +23,16 @@ Player::Player()
 
     // mỗi frame trong spritesheet là 32x32
     // scale 2 → hiển thị 64x64, nhưng toạ độ vẫn tính theo pixel map (16x16 per tile)
-    scale = 1.5f;
     sprite.setScale({scale, scale});
     sprite.setOrigin({16.f, 16.f}); // center của frame 32x32
 
     // --- PHYSICS ---
-    speed        = 32.f;     // tốc độ chạy ổn định
-    jumpHeight   = 48.f;     // nhảy hợp lý (khoảng 5–6 tile)
-    gravity      = 100.f;     // trọng lực tự nhiên
-    maxFallSpeed = 700.f;     // tốc độ rơi tối đa
+speed        = 48.f;      // 3 tiles/s
+gravity      = 1400.f;    // rơi nhanh, không bồng bềnh
+desiredJumpHeight = 80.f; // 5 tiles
+
+maxFallSpeed = 900.f;     // tốc độ rơi tối đa
+
 
 
 
@@ -56,15 +58,12 @@ sf::Vector2f Player::getPosition() const
 sf::Rect<float> Player::getBounds() const
 {
     sf::Vector2f pos = sprite.getPosition();
-
-    float cw = 20.f;
-    float ch = 28.f;
-
-    return sf::Rect<float>(
-        { pos.x - cw * 0.5f, pos.y - ch * 0.5f },
-        { cw, ch }
-    );
+    return {
+        { pos.x - 8.f, pos.y - 14.f },   // dịch hitbox lên đúng
+        { 16.f, 28.f }
+    };
 }
+
 
 void Player::update(float dt)
 {
@@ -78,11 +77,10 @@ void Player::update(float dt)
     if (velocity.y > maxFallSpeed)
         velocity.y = maxFallSpeed;
 
-    sprite.move(velocity * dt);
-
     updateTrapTimer(dt);
     updateAnimation(dt);
 }
+
 
 void Player::handleInput(float dt)
 {
@@ -106,9 +104,11 @@ void Player::handleInput(float dt)
 
     if (wantJump && canJump)
     {
-        velocity.y = -jumpHeight;
+        float jumpVelocity = std::sqrt(2.f * gravity * desiredJumpHeight);
+        velocity.y = -jumpVelocity;
         canJump = false;
     }
+
 
     // Ladder climb
     if (isOnLadder && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
@@ -299,4 +299,23 @@ void Player::respawn(const sf::Vector2f& pos)
     velocity = {0.f, 0.f};
     hp       = maxHP;
     alive    = true;
+}
+
+void Player::applyMovement(const sf::Vector2f& move, const sf::Vector2f& fix)
+{
+    // 1) Move theo input thực
+    sprite.move(move);
+
+    // 2) Sau đó mới sửa lệch collision
+    sprite.move(fix);
+
+    // 3) Reset velocity đúng cách
+    if (fix.x != 0.f)
+        velocity.x = 0.f;
+
+    if (fix.y != 0.f)
+    {
+        velocity.y = 0.f;
+        if (fix.y < 0) canJump = true; // đứng đất
+    }
 }

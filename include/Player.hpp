@@ -20,6 +20,7 @@ public:
     sf::Vector2f getVelocity() const { return velocity; }
 
     void correctPosition(const sf::Vector2f& correction);
+    void applyMovement(const sf::Vector2f& move, const sf::Vector2f& fix);
 
     void draw(sf::RenderWindow& window);
 
@@ -53,7 +54,7 @@ private:
 
     sf::Sprite sprite;
     // body is only for collision detection
-    float scale = 1.5f;
+    float scale = 1.0f;
 
     int frame = 0;
     float frameTimer = 0.f;
@@ -74,7 +75,7 @@ private:
     sf::Vector2f velocity;
 
     float speed;
-    float jumpHeight;
+    float desiredJumpHeight;
     float gravity;
     float maxFallSpeed;
 

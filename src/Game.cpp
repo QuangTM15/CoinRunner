@@ -22,9 +22,12 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
     camWidth  = windowWidth;
     camHeight = windowHeight;
 
-    camera.setCenter({camWidth / 2.f, camHeight / 2.f});
-    camera.setSize({camWidth, camHeight});
+    camera.setSize({camWidth, camHeight});  
+    camera.setCenter(tileMap.spawnPoint);
+    camera.zoom(0.44f);
     window.setView(camera);
+
+
 
     // ---------------------------------
     // LOAD ALL TEXTURES (persistent!)
@@ -224,38 +227,49 @@ void Game::updateSpiders(float dt)
 // ------------------------------------------------
 void Game::updateCamera()
 {
-    auto pos = player.getPosition();
-    camera.setCenter(pos);
+    sf::Vector2f center = player.getPosition();
 
-    float halfW = camWidth  / 2.f;
-    float halfH = camHeight / 2.f;
+    float mapPixelW = tileMap.getmapWidth()  * 16.f;
+    float mapPixelH = tileMap.getmapHeight() * 16.f;
 
-    float maxX = tileMap.getmapWidth()  * 16.f - halfW;
-    float maxY = tileMap.getmapHeight() * 16.f - halfH;
+    float halfW = camera.getSize().x * 0.5f;
+    float halfH = camera.getSize().y * 0.5f;
 
-    float minX = halfW;
-    float minY = halfH;
+    float minX, maxX, minY, maxY;
 
-    sf::Vector2f c = camera.getCenter();
+    // --- Horizontal ---
+    if (mapPixelW <= camera.getSize().x) {
+        minX = maxX = mapPixelW * 0.5f;
+    } else {
+        minX = halfW;
+        maxX = mapPixelW - halfW;
+    }
 
-    auto clamp = [](float v, float lo, float hi)
+    // --- Vertical ---
+    if (mapPixelH <= camera.getSize().y) {
+        minY = maxY = mapPixelH * 0.5f;
+    } else {
+        minY = halfH;
+        maxY = mapPixelH - halfH;
+    }
+
+    auto clamp = [&](float v, float lo, float hi)
     {
         if (v < lo) return lo;
         if (v > hi) return hi;
         return v;
     };
 
-    c.x = clamp(c.x, minX, maxX);
-    c.y = clamp(c.y, minY, maxY);
+    center.x = clamp(center.x, minX, maxX);
+    center.y = clamp(center.y, minY, maxY);
 
-    camera.setCenter(c);
-    window.setView(camera);
+    camera.setCenter(center);
 }
 
 void Game::render()
 {
     window.clear(sf::Color::Black);
-
+    window.setView(camera);
     window.draw(tileMap);
 
     for (auto& c : coins)   c.draw(window);

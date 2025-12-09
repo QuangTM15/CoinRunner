@@ -27,10 +27,11 @@ Player::Player()
     sprite.setOrigin({16.f, 16.f}); // center của frame 32x32
 
     // --- PHYSICS ---
-    speed        = 80.f;     // tốc độ chạy
-    jumpHeight   = 100.f;    // độ cao nhảy
-    gravity      = 500.f;    // lực rơi (cao → rơi nhanh)
-    maxFallSpeed = 600.f;    // tốc độ rơi tối đa
+    speed        = 32.f;     // tốc độ chạy ổn định
+    jumpHeight   = 48.f;     // nhảy hợp lý (khoảng 5–6 tile)
+    gravity      = 100.f;     // trọng lực tự nhiên
+    maxFallSpeed = 700.f;     // tốc độ rơi tối đa
+
 
 
 

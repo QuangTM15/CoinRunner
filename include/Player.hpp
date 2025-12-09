@@ -53,7 +53,7 @@ private:
 
     sf::Sprite sprite;
     // body is only for collision detection
-    float scale = 2.f;
+    float scale = 1.5f;
 
     int frame = 0;
     float frameTimer = 0.f;

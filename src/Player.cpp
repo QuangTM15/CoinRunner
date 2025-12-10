@@ -27,11 +27,11 @@ Player::Player()
     sprite.setOrigin({16.f, 16.f}); // center của frame 32x32
 
     // --- PHYSICS ---
-speed        = 48.f;      // 3 tiles/s
-gravity      = 1400.f;    // rơi nhanh, không bồng bềnh
-desiredJumpHeight = 80.f; // 5 tiles
+    speed        = 50.f;      // 3 tiles/s
+    gravity      = 1400.f;    // rơi nhanh, không bồng bềnh
+    desiredJumpHeight = 80.f; // 5 tiles
 
-maxFallSpeed = 900.f;     // tốc độ rơi tối đa
+    maxFallSpeed = 900.f;     // tốc độ rơi tối đa
 
 
 
@@ -303,19 +303,20 @@ void Player::respawn(const sf::Vector2f& pos)
 
 void Player::applyMovement(const sf::Vector2f& move, const sf::Vector2f& fix)
 {
-    // 1) Move theo input thực
-    sprite.move(move);
+    // ===== X AXIS FIRST =====
+    sprite.move({ move.x + fix.x, 0.f });
 
-    // 2) Sau đó mới sửa lệch collision
-    sprite.move(fix);
-
-    // 3) Reset velocity đúng cách
     if (fix.x != 0.f)
         velocity.x = 0.f;
+
+    // ===== Y AXIS SECOND =====
+    sprite.move({ 0.f, move.y + fix.y });
 
     if (fix.y != 0.f)
     {
         velocity.y = 0.f;
-        if (fix.y < 0) canJump = true; // đứng đất
+
+        if (fix.y < 0)
+            canJump = true;  // landed
     }
 }

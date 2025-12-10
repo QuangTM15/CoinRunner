@@ -205,21 +205,11 @@ void TileMap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 // =======================================================
 sf::Vector2f TileMap::checkCollision(const sf::Rect<float>& box, const sf::Vector2f& vel)
 {
-    sf::Vector2f fix(0,0);
+    sf::Vector2f fix(0.f, 0.f);
 
-    // ============================
-    // Build NEW box after movement
-    // ============================
-    sf::Rect<float> newBox = box;
-    newBox.position.x += vel.x;
-    newBox.position.y += vel.y;
-
-    float leftNew   = newBox.position.x;
-    float rightNew  = newBox.position.x + newBox.size.x;
-    float topNew    = newBox.position.y;
-    float bottomNew = newBox.position.y + newBox.size.y;
-
-    // ========== X AXIS ==========
+    // ============================================================
+    // A. HANDLE X AXIS
+    // ============================================================
     if (vel.x != 0.f)
     {
         float newLeft   = box.position.x + vel.x;
@@ -228,66 +218,104 @@ sf::Vector2f TileMap::checkCollision(const sf::Rect<float>& box, const sf::Vecto
         float top    = box.position.y;
         float bottom = box.position.y + box.size.y - 0.01f;
 
+        // tile range
         int leftTile   = (int)(newLeft / tileWidth);
         int rightTile  = (int)((newRight - 0.01f) / tileWidth);
         int topTile    = (int)(top / tileHeight);
         int bottomTile = (int)(bottom / tileHeight);
 
+        bool collided  = false;
         float bestFix = 0.f;
-        bool collided = false;
 
         for (int ty = topTile; ty <= bottomTile; ++ty)
         for (int tx = leftTile; tx <= rightTile; ++tx)
         {
-            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight) continue;
+            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight)
+                continue;
 
             int gid = groundTiles[ty * mapWidth + tx] & 0x1FFFFFFF;
             if (gid == 0) continue;
 
-            collided = true;
+            float tileLeft   = tx * tileWidth;
+            float tileRight  = tileLeft + tileWidth;
 
-            if (vel.x > 0)
-                bestFix = (tx * tileWidth) - newRight;
-            else
-                bestFix = ((tx + 1) * tileWidth) - newLeft;
+            float fixCandidate;
+
+            if (vel.x > 0) // moving right
+            {
+                fixCandidate = tileLeft - newRight;  // negative value
+
+                if (!collided || fixCandidate > bestFix)
+                    bestFix = fixCandidate;
+            }
+            else // moving left
+            {
+                fixCandidate = tileRight - newLeft;  // positive value
+
+                if (!collided || fixCandidate < bestFix)
+                    bestFix = fixCandidate;
+            }
+
+            collided = true;
         }
 
         if (collided)
             fix.x = bestFix;
     }
 
-
-    // ========== Y AXIS ==========
+    // ============================================================
+    // B. HANDLE Y AXIS
+    // ============================================================
     if (vel.y != 0.f)
     {
-        float topY    = topNew;
-        float bottomY = bottomNew - 0.01f;
+        float newTop    = box.position.y + vel.y;
+        float newBottom = newTop + box.size.y;
 
-        int left   = (int)(leftNew / tileWidth);
-        int right  = (int)((rightNew - 0.01f) / tileWidth);
-        int top    = (int)(topY / tileHeight);
-        int bottom = (int)(bottomY / tileHeight);
+        float left  = box.position.x + fix.x;                 // apply X correction
+        float right = left + box.size.x - 0.01f;
 
+        int leftTile   = (int)(left / tileWidth);
+        int rightTile  = (int)(right / tileWidth);
+        int topTile    = (int)(newTop / tileHeight);
+        int bottomTile = (int)((newBottom - 0.01f) / tileHeight);
+
+        bool collided = false;
         float bestFix = 0.f;
-        bool hit = false;
 
-        for (int ty = top; ty <= bottom; ty++)
-        for (int tx = left; tx <= right; tx++)
+        for (int ty = topTile; ty <= bottomTile; ++ty)
+        for (int tx = leftTile; tx <= rightTile; ++tx)
         {
-            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight) continue;
+            if (tx < 0 || ty < 0 || tx >= mapWidth || ty >= mapHeight)
+                continue;
 
             int gid = groundTiles[ty * mapWidth + tx] & 0x1FFFFFFF;
             if (gid == 0) continue;
 
-            hit = true;
+            float tileTop    = ty * tileHeight;
+            float tileBottom = tileTop + tileHeight;
 
-            if (vel.y > 0)
-                bestFix = (ty * tileHeight) - bottomNew;
-            else
-                bestFix = ((ty + 1) * tileHeight) - topNew;
+            float fixCandidate;
+
+            if (vel.y > 0) // moving down
+            {
+                fixCandidate = tileTop - newBottom;   // negative
+
+                if (!collided || fixCandidate > bestFix)
+                    bestFix = fixCandidate;
+            }
+            else // moving up
+            {
+                fixCandidate = tileBottom - newTop;   // positive
+
+                if (!collided || fixCandidate < bestFix)
+                    bestFix = fixCandidate;
+            }
+
+            collided = true;
         }
 
-        if (hit) fix.y = bestFix;
+        if (collided)
+            fix.y = bestFix;
     }
 
     return fix;

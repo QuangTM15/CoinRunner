@@ -24,7 +24,7 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
 
     camera.setSize({camWidth, camHeight});  
     camera.setCenter(tileMap.spawnPoint);
-    camera.zoom(0.44f);
+    camera.zoom(0.5f);
     window.setView(camera);
 
 

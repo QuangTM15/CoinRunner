@@ -56,29 +56,36 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
     json j;
     file >> j;
 
-    mapWidth = j["width"];
+    mapWidth  = j["width"];
     mapHeight = j["height"];
-    tileWidth = j["tilewidth"];
+    tileWidth  = j["tilewidth"];
     tileHeight = j["tileheight"];
 
     std::filesystem::path mapDir = std::filesystem::path(mapFile).parent_path();
 
-    // load tilesets
+    // ============================
+    // LOAD TILESETS
+    // ============================
     tilesets.clear();
-    for (auto& ts : j["tilesets"]) {
+    for (auto& ts : j["tilesets"])
+    {
         int firstgid = ts["firstgid"];
         std::string tsxPath = (mapDir / ts["source"].get<std::string>()).string();
         tilesets.push_back(loadTsx(tsxPath, firstgid));
     }
 
     std::sort(tilesets.begin(), tilesets.end(),
-        [](const TilesetInfo& a, const TilesetInfo& b) { return a.firstgid < b.firstgid; });
+        [](const TilesetInfo& a, const TilesetInfo& b) {
+            return a.firstgid < b.firstgid;
+        }
+    );
 
     auto getTileset = [&](int gid) -> const TilesetInfo*
     {
-        gid = gid & 0x1FFFFFFF; // REMOVE FLIP BITS
+        gid &= 0x1FFFFFFF;
         const TilesetInfo* t = nullptr;
-        for (auto& ts : tilesets) {
+        for (auto& ts : tilesets)
+        {
             if (gid >= ts.firstgid)
                 t = &ts;
             else break;
@@ -104,7 +111,7 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             int rawGid = data[index++];
             if (rawGid == 0) continue;
 
-            int gid = rawGid & 0x1FFFFFFF; // remove flip bits
+            int gid = rawGid & 0x1FFFFFFF;
             const TilesetInfo* ts = getTileset(gid);
             if (!ts) continue;
 
@@ -118,32 +125,32 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
                 sf::Vector2i(tileWidth, tileHeight)
             });
 
-            sprite.setPosition({ x * tileWidth, y * tileHeight });
+            sprite.setPosition(sf::Vector2f(x * tileWidth, y * tileHeight));
             tiles.push_back(sprite);
         }
     }
 
-    // ============================
-    // LOAD GROUND COLLISION LAYER
-    // ============================
+    // ===============================
+    // GROUND COLLISION LAYER
+    // ===============================
     for (auto& layer : j["layers"])
     {
-        if (layer.value("name", "") == "ground" && layer["type"] == "tilelayer")
+        if (layer.value("name","") == "ground" && layer["type"] == "tilelayer")
         {
             groundTiles = layer["data"].get<std::vector<int>>();
         }
     }
 
-    // ============================
-    // LOAD OBJECTS (FIX Y OFFSET)
-    // ============================
-    spawnPoint = { 0,0 };
-    ladderAreas.clear();
-    killzones.clear();
-    checkpoints.clear();
-    trapDamages.clear();
+    // ===============================
+    // LOAD OBJECTS (NEW CLEAN VERSION)
+    // ===============================
+
+    spawnPoint = {0,0};
     coins.clear();
-    spiders.clear();
+    trapsStatic.clear();
+    trapsMoving.clear();
+    checkpoints.clear();
+    killzones.clear();
 
     for (auto& layer : j["layers"])
     {
@@ -158,37 +165,60 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             float w = obj.value("width", 0.f);
             float h = obj.value("height", 0.f);
 
-            // FIX: convert bottom-left origin to tile top-left origin
-            sf::Vector2f topLeft(x, y - h - tileHeight);
+            sf::Vector2f topLeft(x, y - h);
+            sf::Rect<float> rect(topLeft, { w, h });
 
-            sf::Rect<float> rect(topLeft, {w, h});
+            int gid = obj.value("gid", 0);
 
-            if (type == "spawn")
+            // ---- SPAWN ----
+            if ( type == "spawn")
             {
                 spawnPoint = topLeft;
             }
-            else if (type == "LadderArea")
-                ladderAreas.push_back(rect);
-            else if (type == "killzone")
-                killzones.push_back(rect);
-            else if (type == "checkpoint")
-                checkpoints.push_back(rect);
+            // ---- COIN ----
             else if (type == "coin")
             {
-                MapObject c; c.rect = rect; coins.push_back(c);
+                MapObject c{ rect, gid };
+                coins.push_back(c);
             }
-            else if (type == "trap_damage")
+            // ---- STATIC TRAP ----
+            else if (type == "st")
             {
-                MapObject t; t.rect = rect; trapDamages.push_back(t);
+                MapObject t{ rect, gid };
+                trapsStatic.push_back(t);
             }
-            else if (type == "spider")
+            // ---- MOVING TRAP ----
+            else if (type == "mv")
             {
-                MapObject s; s.rect = rect; spiders.push_back(s);
+                MapObject t{ rect, gid };
+
+                for (auto& p : obj.value("properties", json::array()))
+                {
+                    std::string key = p.value("name", "");
+
+                    if (key == "range")
+                        t.floatProps["range"] = p.value("value", 0.f);
+
+                    else if (key == "axis")
+                        t.floatProps["axis"] = (p.value("value", "x") == "x" ? 0.f : 1.f);
+                }
+                trapsMoving.push_back(t);
+            }
+            // ---- CHECKPOINT ----
+            else if (type == "checkpoint")
+            {
+                MapObject cp{ rect, gid };
+                checkpoints.push_back(cp);
+            }
+            // ---- KILLZONE ----
+            else if (type == "killzone")
+            {
+                killzones.push_back(rect);
             }
         }
     }
 
-    return true;
+    return true; // 🔥 FIRE — PHẢI CÓ DÒNG NÀY
 }
 
 // =======================================================

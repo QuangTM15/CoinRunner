@@ -5,8 +5,7 @@
 #include "Player.hpp"
 #include "TileMap.hpp"
 #include "Coin.hpp"
-#include "DamageTrap.hpp"
-#include "Spider.hpp"
+#include "Trap.hpp"
 
 class Game {
 public:
@@ -19,37 +18,26 @@ private:
     void render();
 
     void loadObjectsFromMap();
-
     void updateCoins(float dt);
     void updateTraps(float dt);
-    void updateSpiders(float dt);
     void updateCamera();
 
 private:
     sf::RenderWindow window;
-    sf::Clock clock;
     sf::View camera;
 
     float camWidth;
     float camHeight;
 
-    // -----------------------
-    //  GAME ENTITIES
-    // -----------------------
     Player player;
     TileMap tileMap;
 
     std::vector<Coin> coins;
-    std::vector<DamageTrap> traps;
-    std::vector<Spider> spiders;
+    std::vector<Trap> traps;
 
     int coinCount = 0;
     sf::Vector2f lastCheckpoint;
 
-    // -----------------------
-    //  TEXTURES (Persistent!)
-    // -----------------------
     sf::Texture texCoin;
-    sf::Texture texTrapDamage;
-    sf::Texture texSpider;
+    sf::Texture texTileset;    // dùng cho traps
 };

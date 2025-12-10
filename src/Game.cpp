@@ -2,10 +2,9 @@
 #include <iostream>
 
 // ------------------------------------------------
-//  Constructor
+// Helper intersects for SFML3
 // ------------------------------------------------
-
-static bool intersects(const sf::Rect<float>& a, const sf::Rect<float>& b)
+static bool intersectsRect(const sf::Rect<float>& a, const sf::Rect<float>& b)
 {
     return !(
         a.position.x + a.size.x < b.position.x ||
@@ -15,6 +14,9 @@ static bool intersects(const sf::Rect<float>& a, const sf::Rect<float>& b)
     );
 }
 
+// ------------------------------------------------
+// Constructor
+// ------------------------------------------------
 Game::Game(unsigned int windowWidth, unsigned int windowHeight)
 {
     window.create(sf::VideoMode({windowWidth, windowHeight}), "Coin Runner Game");
@@ -22,152 +24,135 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
     camWidth  = windowWidth;
     camHeight = windowHeight;
 
-    camera.setSize({camWidth, camHeight});  
-    camera.setCenter(tileMap.spawnPoint);
-    camera.zoom(0.5f);
-    window.setView(camera);
+    camera.setSize({ camWidth, camHeight });
 
-
-
-    // ---------------------------------
-    // LOAD ALL TEXTURES (persistent!)
-    // ---------------------------------
+    // -------------------------
+    // LOAD TEXTURES
+    // -------------------------
     if (!texCoin.loadFromFile("asset/textures/items/Coin.png"))
-        std::cerr << "[ERR] Cannot load Coin texture\n";
+        std::cerr << "[ERR] Cannot load Coin.png\n";
 
-    if (!texTrapDamage.loadFromFile("asset/textures/traps/damage.png"))
-        std::cerr << "[ERR] Cannot load trap_damage texture\n";
+    // Tileset dùng cho trap st/mv
+    if (!texTileset.loadFromFile("asset/textures/items/16x16.png"))
+        std::cerr << "[ERR] Cannot load 16x16 tileset!\n";
 
-    if (!texSpider.loadFromFile("asset/textures/enemies/spider.png"))
-        std::cerr << "[ERR] Cannot load spider texture\n";
-
-    // Load map
+    // -------------------------
+    // LOAD MAP
+    // -------------------------
     tileMap.loadFromFile("asset/maps/mapdemo.json", 16.f);
 
-    // Load all objects
     loadObjectsFromMap();
 
-    // Player spawn
+    // Spawn player
     player.setPosition(tileMap.spawnPoint);
-    std::cout << "SPAWN = " << tileMap.spawnPoint.x << ", "<< tileMap.spawnPoint.y << "\n";
-
     lastCheckpoint = tileMap.spawnPoint;
+
+    camera.setCenter(player.getPosition());
+    camera.zoom(0.5f);
+    window.setView(camera);
 }
 
-
 // ------------------------------------------------
-//  Load objects from TileMap
+// Load trap/coins/checkpoint from TileMap
 // ------------------------------------------------
 void Game::loadObjectsFromMap()
 {
-    // Coins
+    // -------- COINS --------
     for (auto& obj : tileMap.coins)
     {
-        coins.emplace_back(texCoin, obj.rect.position, 12.f, 12.f);
-    }
-
-    // Damage Traps
-    for (auto& obj : tileMap.trapDamages)
-    {
-        float interval = obj.floatProps.count("interval") ? obj.floatProps.at("interval") : 1.f;
-
-        traps.emplace_back(
-            texTrapDamage,
-            obj.rect,
-            1.f,          // damage
-            interval
+        coins.emplace_back(
+            texCoin,
+            obj.rect.position,
+            12.f, 12.f
         );
     }
 
-    // Spiders
-    for (auto& obj : tileMap.spiders)
+    // -------- STATIC TRAPS (st) --------
+    for (auto& obj : tileMap.trapsStatic)
     {
-        float range = obj.floatProps.count("range") ? obj.floatProps.at("range") : 50.f;
-        float speed = obj.floatProps.count("speed") ? obj.floatProps.at("speed") : 50.f;
+        int gid = obj.gid & 0x1FFFFFFF;
+        int local = gid - tileMap.tilesets[0].firstgid;
 
-        spiders.emplace_back(texSpider, obj.rect, range, speed);
+        int tx = (local % tileMap.tilesets[0].columns) * tileMap.tileWidth;
+        int ty = (local / tileMap.tilesets[0].columns) * tileMap.tileHeight;
+
+        sf::IntRect rect;
+        rect.position = { tx, ty };
+        rect.size = { tileMap.tileWidth, tileMap.tileHeight };
+
+        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
+
+        traps.emplace_back(Trap::Type::Static, texTileset, center, rect);
+    }
+
+    // -------- MOVING TRAPS (mv) --------
+    for (auto& obj : tileMap.trapsMoving)
+    {
+        int gid = obj.gid & 0x1FFFFFFF;
+        int local = gid - tileMap.tilesets[0].firstgid;
+
+        int tx = (local % tileMap.tilesets[0].columns) * tileMap.tileWidth;
+        int ty = (local / tileMap.tilesets[0].columns) * tileMap.tileHeight;
+
+        sf::IntRect rect;
+        rect.position = { tx, ty };
+        rect.size = { tileMap.tileWidth, tileMap.tileHeight };
+
+        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
+
+        Trap t(Trap::Type::Moving, texTileset, center, rect);
+
+        t.setRange(obj.floatProps.count("range") ? obj.floatProps.at("range") : 40.f);
+        t.setAxisX(!obj.floatProps.count("axis") || obj.floatProps.at("axis") == 0);
+
+        traps.push_back(t);
     }
 }
 
 
 // ------------------------------------------------
-//  Main Loop
-// ------------------------------------------------
-void Game::run()
-{
-    sf::Clock clock;
-    float accumulator = 0.f;
-    const float fixedDt = 1.f / 60.f;   // update logic 60 lần/giây
-
-    while (window.isOpen())
-    {
-        processEvents();
-
-        float dt = clock.restart().asSeconds();
-        accumulator += dt;
-
-        // Update cố định, không phụ thuộc FPS
-        while (accumulator >= fixedDt)
-        {
-            update(fixedDt);       // 🔥 logic mượt tuyệt đối
-            accumulator -= fixedDt;
-        }
-
-        render();                  // render theo FPS không cố định
-    }
-}
-
-
-// ------------------------------------------------
-//  Events
-// ------------------------------------------------
-void Game::processEvents()
-{
-    while (auto evt = window.pollEvent())
-    {
-        if (evt->is<sf::Event::Closed>())
-            window.close();
-    }
-}
-
-
-// ------------------------------------------------
-//  UPDATE
+// UPDATE
 // ------------------------------------------------
 void Game::update(float dt)
 {
     player.update(dt);
 
-    sf::Vector2f vel = player.getVelocity();
-    sf::Vector2f move = vel * dt;
-
-    sf::Vector2f fix = tileMap.checkCollision(player.getBounds(), move);
+    sf::Vector2f move = player.getVelocity() * dt;
+    sf::Vector2f fix  = tileMap.checkCollision(player.getBounds(), move);
 
     player.applyMovement(move, fix);
 
-    // cập nhật pbox sau khi move
     sf::Rect<float> pbox = player.getBounds();
 
-    // ladder
-    bool onLadder = false;
-    for (auto& r : tileMap.ladderAreas)
-        if (intersects(pbox, r)) onLadder = true;
-    player.setOnLadder(onLadder);
-
-    // traps / coins / checkpoints...
+    // ---- UPDATE COINS ----
     updateCoins(dt);
-    updateTraps(dt);
-    updateSpiders(dt);
 
+    // ---- UPDATE TRAPS ----
+    updateTraps(dt);
+
+    // ---- KILLZONES ----
     for (auto& r : tileMap.killzones)
-        if (intersects(pbox, r))
+    {
+        if (intersectsRect(pbox, r))
+        {
+            player.onHitTrap();
             player.respawn(lastCheckpoint);
+        }
+    }
+
+    // ---- CHECKPOINT ----
+    for (auto& cp : tileMap.checkpoints)
+    {
+        if (intersectsRect(pbox, cp.rect))
+            lastCheckpoint = cp.rect.position;
+    }
 
     updateCamera();
 }
 
+
 // ------------------------------------------------
-//  COINS
+// COINS
 // ------------------------------------------------
 void Game::updateCoins(float dt)
 {
@@ -186,30 +171,17 @@ void Game::updateCoins(float dt)
 
 
 // ------------------------------------------------
-//  TRAPS
+// TRAPS (st + mv)
 // ------------------------------------------------
 void Game::updateTraps(float dt)
 {
     for (auto& t : traps)
     {
-        if (t.checkHit(player.getBounds(), dt))
-            player.hitTrapDamage();
-    }
-}
+        t.update(dt);
 
-
-// ------------------------------------------------
-//  SPIDERS
-// ------------------------------------------------
-void Game::updateSpiders(float dt)
-{
-    for (auto& s : spiders)
-    {
-        s.update(dt);
-
-        if (s.checkHit(player.getBounds()))
+        if (intersectsRect(player.getBounds(), t.getBounds()))
         {
-            player.hitSpider();
+            player.onHitTrap();
             player.respawn(lastCheckpoint);
         }
     }
@@ -217,60 +189,84 @@ void Game::updateSpiders(float dt)
 
 
 // ------------------------------------------------
-//  CAMERA
+// CAMERA FOLLOW
 // ------------------------------------------------
 void Game::updateCamera()
 {
     sf::Vector2f center = player.getPosition();
 
-    float mapPixelW = tileMap.getmapWidth()  * 16.f;
-    float mapPixelH = tileMap.getmapHeight() * 16.f;
+    float mapW = tileMap.getmapWidth()  * tileMap.tileWidth;
+    float mapH = tileMap.getmapHeight() * tileMap.tileHeight;
 
     float halfW = camera.getSize().x * 0.5f;
     float halfH = camera.getSize().y * 0.5f;
 
-    float minX, maxX, minY, maxY;
-
-    // --- Horizontal ---
-    if (mapPixelW <= camera.getSize().x) {
-        minX = maxX = mapPixelW * 0.5f;
-    } else {
-        minX = halfW;
-        maxX = mapPixelW - halfW;
-    }
-
-    // --- Vertical ---
-    if (mapPixelH <= camera.getSize().y) {
-        minY = maxY = mapPixelH * 0.5f;
-    } else {
-        minY = halfH;
-        maxY = mapPixelH - halfH;
-    }
-
     auto clamp = [&](float v, float lo, float hi)
     {
-        if (v < lo) return lo;
-        if (v > hi) return hi;
-        return v;
+        return std::max(lo, std::min(hi, v));
     };
 
-    center.x = clamp(center.x, minX, maxX);
-    center.y = clamp(center.y, minY, maxY);
+    center.x = clamp(center.x, halfW, mapW - halfW);
+    center.y = clamp(center.y, halfH, mapH - halfH);
 
     camera.setCenter(center);
 }
 
+
+// ------------------------------------------------
+// RENDER
+// ------------------------------------------------
 void Game::render()
 {
-    window.clear(sf::Color::Black);
+    window.clear();
     window.setView(camera);
+
     window.draw(tileMap);
 
-    for (auto& c : coins)   c.draw(window);
-    for (auto& t : traps)   t.draw(window);
-    for (auto& s : spiders) s.draw(window);
+    for (auto& c : coins) c.draw(window);
+    for (auto& t : traps) t.draw(window);
 
     player.draw(window);
 
     window.display();
+}
+
+
+// ------------------------------------------------
+// GAME LOOP
+// ------------------------------------------------
+void Game::run()
+{
+    sf::Clock clock;
+    float acc = 0.f;
+    const float dtFixed = 1.f / 60.f;
+
+    while (window.isOpen())
+    {
+        processEvents();
+
+        float dt = clock.restart().asSeconds();
+        acc += dt;
+
+        while (acc >= dtFixed)
+        {
+            update(dtFixed);
+            acc -= dtFixed;
+        }
+
+        render();
+    }
+}
+
+
+// ------------------------------------------------
+// PROCESS EVENTS
+// ------------------------------------------------
+void Game::processEvents()
+{
+    while (auto evt = window.pollEvent())
+    {
+        if (evt->is<sf::Event::Closed>())
+            window.close();
+    }
 }

@@ -7,44 +7,44 @@
 
 class TileMap : public sf::Drawable {
 public:
-    // --- MAP OBJECT ---
+
+    // ---- MAP OBJECT STRUCT ----
     struct MapObject {
-        sf::Rect<float> rect;
-        int gid = 0; // 0 = region (spawn, killzone, checkpoint...), >0 = tile object (coin, trap, spider)
-        std::unordered_map<std::string, float> floatProps;
+        sf::Rect<float> rect;                        // vị trí và kích thước
+        int gid = 0;                                  // tile GID (áp dụng cho coin, trap, checkpoint)
+        std::unordered_map<std::string, float> floatProps; // ví dụ: range, axis
     };
 
     TileMap() = default;
     bool loadFromFile(const std::string& mapFile, float tileSize);
 
+    // ---- WORLD DATA ----
     sf::Vector2f spawnPoint;
 
-    std::vector<sf::Rect<float>> ladderAreas;
-    std::vector<sf::Rect<float>> killzones;
-    std::vector<sf::Rect<float>> checkpoints;
-    std::vector<MapObject> trapDamages;  // type = trap_damage
-    std::vector<MapObject> coins;        // type = coin
-    std::vector<MapObject> spiders;      // type = spider
-    float getmapWidth() const { return mapWidth; }
-    float getmapHeight() const { return mapHeight; }
+    std::vector<MapObject> coins;         // object "coin"
+    std::vector<MapObject> trapsStatic;   // object "st"
+    std::vector<MapObject> trapsMoving;   // object "mv"
+    std::vector<MapObject> checkpoints;   // object "checkpoint"
+    std::vector<sf::Rect<float>> killzones; // killzone rect (die on touch)
 
-    // --- TILEMAP COLLISION SYSTEM ---
-    std::vector<int> groundTiles;     // mảng GID của layer ground
+    // ---- TILE COLLISION DATA ----
+    std::vector<int> groundTiles;  // GID của layer "ground"
     int tileWidth = 16;
     int tileHeight = 16;
 
-    sf::Vector2i getTileCoords(int index) const;
-    bool isSolid(int gid) const;
+    float getmapWidth() const  { return mapWidth; }
+    float getmapHeight() const { return mapHeight; }
 
     sf::Vector2f checkCollision(const sf::Rect<float>& box, const sf::Vector2f& vel);
-
+    std::vector<TilesetInfo> tilesets;
 
 private:
-    float mapWidth = 0, mapHeight = 0;
+
+    float mapWidth = 0;
+    float mapHeight = 0;
     float tileSize = 0;
 
-    std::vector<TilesetInfo> tilesets;
-    std::vector<sf::Sprite> tiles;
+    std::vector<sf::Sprite> tiles; // background + decoration + ground visual
 
     virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };

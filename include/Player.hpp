@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Config.hpp"
-#include <unordered_map>
+
 static constexpr int SPRITE_W = 32;
 static constexpr int SPRITE_H = 32;
 
@@ -24,23 +24,14 @@ public:
 
     void draw(sf::RenderWindow& window);
 
-    // Trap xử lý
-    void hitTrapDamage(); // nấm
-    void hitSpider();     // nhện
-    void updateTrapTimer(float dt);
-
-    // Ladder
-    void setOnLadder(bool v) { isOnLadder = v; }
-    bool getOnLadder() const { return isOnLadder; }
-
-    // HP + Life
-    int hp = 5;
-    int maxHP = 5;
-    int life = 3;
+    // Death system
+    void onHitTrap();              // chạm trap = chết ngay
+    void respawn(const sf::Vector2f& pos);
 
     bool isAlive() const { return alive; }
-    void respawn(const sf::Vector2f& pos);
     bool facingLeft = false;
+
+    int life = 3;                  // chỉ còn life
 
 private:
 
@@ -53,13 +44,12 @@ private:
     sf::Texture texJump;
 
     sf::Sprite sprite;
-    // body is only for collision detection
+
     float scale = 1.0f;
 
     int frame = 0;
     float frameTimer = 0.f;
 
-    // số frame mỗi trạng thái
     int idleFrames = 4;
     int runFrames = 8;
     int jumpFrames = 6;
@@ -79,14 +69,7 @@ private:
     float gravity;
     float maxFallSpeed;
 
-    bool spaceHeld = false;
     bool canJump = true;
-    bool isOnLadder = false;
 
     bool alive = true;
-
-    // trap damage
-    bool justHitTrap = false;
-    float trapCooldown;
-    float trapTimer = 0.f;
 };

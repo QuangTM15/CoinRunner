@@ -20,7 +20,7 @@ Player::Player()
     sprite.setOrigin({16.f, 16.f});
 
     // physics
-    speed        = 50.f;
+    speed        = 48.f;
     gravity      = 1400.f;
     desiredJumpHeight = 80.f;
     maxFallSpeed = 900.f;
@@ -53,12 +53,18 @@ sf::Rect<float> Player::getBounds() const
 
 void Player::update(float dt)
 {
-    handleInput(dt);
-    applyGravity(dt);
+    if (controlLock > 0.f)
+    {
+        controlLock -= dt;  
+    }
+    else
+    {
+        handleInput(dt);
+    }
 
+    applyGravity(dt);
     if (velocity.y > maxFallSpeed)
         velocity.y = maxFallSpeed;
-
     updateAnimation(dt);
 }
 
@@ -212,6 +218,8 @@ void Player::respawn(const sf::Vector2f& pos)
     velocity = {0.f, 0.f};
     alive = true;
     canJump = true;
+    skipCollisionFrame = true;
+    controlLock = 0.1f;
 }
 
 void Player::applyMovement(const sf::Vector2f& move, const sf::Vector2f& fix)

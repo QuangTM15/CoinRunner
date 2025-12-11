@@ -31,7 +31,9 @@ public:
     bool isAlive() const { return alive; }
     bool facingLeft = false;
 
-    int life = 3;                  // chỉ còn life
+    int life = 5;
+    bool skipCollisionFrame = false;
+    float controlLock = 0.f;               
 
 private:
 
@@ -63,7 +65,6 @@ private:
 private:
     // physics
     sf::Vector2f velocity;
-
     float speed;
     float desiredJumpHeight;
     float gravity;

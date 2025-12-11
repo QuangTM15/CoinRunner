@@ -119,7 +119,14 @@ void Game::update(float dt)
 
     sf::Vector2f move = player.getVelocity() * dt;
     sf::Vector2f fix  = tileMap.checkCollision(player.getBounds(), move);
-
+    if (!player.skipCollisionFrame)
+    {
+        fix = tileMap.checkCollision(player.getBounds(), move);
+    }
+    else
+    {
+        player.skipCollisionFrame = false; // chỉ skip đúng 1 frame
+    }
     player.applyMovement(move, fix);
 
     sf::Rect<float> pbox = player.getBounds();

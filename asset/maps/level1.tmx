@@ -136,7 +136,7 @@
   <object id="21" type="coin" gid="273" x="191" y="255.667" width="16" height="16"/>
   <object id="22" type="coin" gid="273" x="238" y="256.667" width="16" height="16"/>
   <object id="23" type="coin" gid="273" x="112" y="84" width="16" height="16"/>
-  <object id="24" type="spawn" x="4030.17" y="443.833">
+  <object id="24" type="spawn" x="112.167" y="431.833">
    <point/>
   </object>
   <object id="30" type="nail" gid="302" x="112.186" y="256.648" width="16" height="16"/>

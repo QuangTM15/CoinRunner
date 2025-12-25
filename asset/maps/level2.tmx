@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="300" height="32" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="245">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="300" height="32" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="246">
  <editorsettings>
-  <export target="mapdemo.json" format="json"/>
+  <export target="level2.json" format="json"/>
  </editorsettings>
  <tileset firstgid="1" source="../textures/map/Map.tsx"/>
  <tileset firstgid="257" source="../textures/map/platforms.tsx"/>
@@ -116,7 +116,7 @@
 </data>
  </layer>
  <objectgroup id="4" name="objects">
-  <object id="1" type="spawn" x="3578" y="448">
+  <object id="1" type="spawn" x="185.333" y="398.667">
    <point/>
   </object>
   <object id="2" type="killzone" x="272" y="495" width="160.667" height="16.6667"/>

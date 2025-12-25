@@ -1,61 +1,53 @@
 #include "TrapManager.hpp"
-#include <cmath>
 
-
-sf::IntRect TrapManager::gidToRect(int gid, const TileMap& map) const
+void TrapManager::setTextures(const sf::Texture& st,
+                              const sf::Texture& mvX,
+                              const sf::Texture& mvY)
 {
-    const TilesetInfo& ts = map.tilesets[0]; // vì bạn chỉ có 1 tileset 16x16
-    int local = gid - ts.firstgid;
-
-    int tx = (local % ts.columns) * map.tileWidth;
-    int ty = (local / ts.columns) * map.tileHeight;
-    sf::IntRect r;
-    r.position = { tx, ty };
-    r.size     = { map.tileWidth, map.tileHeight };
-    return r;
-
+    texStatic = &st;
+    texMoveX  = &mvX;
+    texMoveY  = &mvY;
 }
 
 void TrapManager::loadFromTileMap(const TileMap& map)
 {
     traps.clear();
 
-    // STATIC TRAPS (st)
+    if (!texStatic || !texMoveX || !texMoveY)
+        return;
+
+    // -------- STATIC TRAPS --------
     for (auto& obj : map.trapsStatic)
     {
-        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
+        sf::Vector2f center = obj.rect.position + obj.rect.size * 0.5f;
 
-        int gid = obj.gid & 0x1FFFFFFF;
-        sf::IntRect rect = gidToRect(gid, map);
-
-        traps.emplace_back(Trap::Type::Static,
-                           map.tilesets[0].texture,
-                           center,
-                           rect);
+        traps.emplace_back(
+            Trap::Type::Static,
+            *texStatic,
+            center
+        );
     }
 
-    // MOVING TRAPS (mv)
+    // -------- MOVING TRAPS --------
     for (auto& obj : map.trapsMoving)
     {
-        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
-
-        int gid = obj.gid & 0x1FFFFFFF;
-        sf::IntRect rect = gidToRect(gid, map);
-
-        Trap t(Trap::Type::Moving,
-               map.tilesets[0].texture,
-               center,
-               rect);
+        bool axisX = !obj.floatProps.count("axis") ||
+                     obj.floatProps.at("axis") == 0.f;
 
         float range = obj.floatProps.count("range") ?
                       obj.floatProps.at("range") : 40.f;
 
-        bool axisX = obj.floatProps.count("axis") ?
-                     (obj.floatProps.at("axis") == 0.f) : true;
+        sf::Vector2f center = obj.rect.position + obj.rect.size * 0.5f;
 
-        t.setRange(range);
+        Trap t(
+            Trap::Type::Moving,
+            axisX ? *texMoveX : *texMoveY,
+            center
+        );
+
         t.setAxisX(axisX);
-        t.setSpeed(2.0f);
+        t.setRange(range);
+        t.setSpeed(2.f);
 
         traps.push_back(t);
     }

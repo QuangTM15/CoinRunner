@@ -37,7 +37,11 @@ TilesetInfo loadTsx(const std::string& tsxPath, int firstgid)
 
     std::filesystem::path dir = std::filesystem::path(tsxPath).parent_path();
     info.imagePath = (dir / info.imagePath).string();
-    info.texture.loadFromFile(info.imagePath);
+    if (!info.texture.loadFromFile(info.imagePath))
+    {
+        std::cerr << "[ERR] Cannot load tileset image: "
+                << info.imagePath << "\n";
+    }
 
     return info;
 }

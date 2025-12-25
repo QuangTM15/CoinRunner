@@ -39,5 +39,8 @@ private:
     sf::Vector2f lastCheckpoint;
 
     sf::Texture texCoin;
-    sf::Texture texTileset;    // dùng cho traps
+    sf::Texture texTrapStatic;
+    sf::Texture texTrapMoveX;
+    sf::Texture texTrapMoveY;
+
 };

@@ -116,7 +116,7 @@
 </data>
  </layer>
  <objectgroup id="4" name="objects">
-  <object id="1" type="spawn" x="3670.85" y="462.573">
+  <object id="1" type="spawn" x="73.5167" y="413.906">
    <point/>
   </object>
   <object id="2" type="killzone" x="2.6665" y="494.667" width="252.667" height="16.6667"/>

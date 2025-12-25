@@ -32,9 +32,15 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
     if (!texCoin.loadFromFile("asset/textures/items/Coin.png"))
         std::cerr << "[ERR] Cannot load Coin.png\n";
 
-    // Tileset dùng cho trap st/mv
-    if (!texTileset.loadFromFile("asset/textures/items/16x16.png"))
-        std::cerr << "[ERR] Cannot load 16x16 tileset!\n";
+    //Load trap st/mv
+    if (!texTrapStatic.loadFromFile("asset/textures/items/trap_st.png"))
+        std::cerr << "[ERR] Cannot load trap_st.png\n";
+
+    if (!texTrapMoveX.loadFromFile("asset/textures/items/trap_mv_x.png"))
+        std::cerr << "[ERR] Cannot load trap_mv_x.png\n";
+
+    if (!texTrapMoveY.loadFromFile("asset/textures/items/trap_mv_y.png"))
+        std::cerr << "[ERR] Cannot load trap_mv_y.png\n";
 
     // -------------------------
     // LOAD MAP
@@ -42,7 +48,6 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
     tileMap.loadFromFile("asset/maps/mapdemo.json", 16.f);
 
     loadObjectsFromMap();
-
     // Spawn player
     player.setPosition(tileMap.spawnPoint);
     lastCheckpoint = tileMap.spawnPoint;
@@ -70,45 +75,35 @@ void Game::loadObjectsFromMap()
     // -------- STATIC TRAPS (st) --------
     for (auto& obj : tileMap.trapsStatic)
     {
-        int gid = obj.gid & 0x1FFFFFFF;
-        int local = gid - tileMap.tilesets[0].firstgid;
+        sf::Vector2f center = obj.rect.position + obj.rect.size * 0.5f;
 
-        int tx = (local % tileMap.tilesets[0].columns) * tileMap.tileWidth;
-        int ty = (local / tileMap.tilesets[0].columns) * tileMap.tileHeight;
-
-        sf::IntRect rect;
-        rect.position = { tx, ty };
-        rect.size = { tileMap.tileWidth, tileMap.tileHeight };
-
-        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
-
-        traps.emplace_back(Trap::Type::Static, texTileset, center, rect);
+        traps.emplace_back(
+            Trap::Type::Static,
+            texTrapStatic,
+            center
+        );
     }
 
     // -------- MOVING TRAPS (mv) --------
     for (auto& obj : tileMap.trapsMoving)
     {
-        int gid = obj.gid & 0x1FFFFFFF;
-        int local = gid - tileMap.tilesets[0].firstgid;
+        bool axisX = !obj.floatProps.count("axis") || obj.floatProps.at("axis") == 0;
+        float range = obj.floatProps.count("range") ? obj.floatProps.at("range") : 40.f;
 
-        int tx = (local % tileMap.tilesets[0].columns) * tileMap.tileWidth;
-        int ty = (local / tileMap.tilesets[0].columns) * tileMap.tileHeight;
+        sf::Vector2f center = obj.rect.position + obj.rect.size * 0.5f;
 
-        sf::IntRect rect;
-        rect.position = { tx, ty };
-        rect.size = { tileMap.tileWidth, tileMap.tileHeight };
+        Trap t(
+            Trap::Type::Moving,
+            axisX ? texTrapMoveX : texTrapMoveY,
+            center
+        );
 
-        sf::Vector2f center = obj.rect.position + sf::Vector2f(8.f, 8.f);
-
-        Trap t(Trap::Type::Moving, texTileset, center, rect);
-
-        t.setRange(obj.floatProps.count("range") ? obj.floatProps.at("range") : 40.f);
-        t.setAxisX(!obj.floatProps.count("axis") || obj.floatProps.at("axis") == 0);
+        t.setAxisX(axisX);
+        t.setRange(range);
 
         traps.push_back(t);
     }
 }
-
 
 // ------------------------------------------------
 // UPDATE

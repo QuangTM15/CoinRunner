@@ -19,13 +19,13 @@ public:
     bool loadFromFile(const std::string& mapFile, float tileSize);
 
     // ---- WORLD DATA ----
-    sf::Vector2f spawnPoint;
-
+    sf::Vector2f spawnPoint;            // object "spawn"
     std::vector<MapObject> coins;         // object "coin"
     std::vector<MapObject> trapsStatic;   // object "st"
     std::vector<MapObject> trapsMoving;   // object "mv"
     std::vector<MapObject> checkpoints;   // object "checkpoint"
     std::vector<sf::Rect<float>> killzones; // killzone rect (die on touch)
+    std::vector<MapObject> goals;        // object "goal"
 
     // ---- TILE COLLISION DATA ----
     std::vector<int> groundTiles;  // GID của layer "ground"

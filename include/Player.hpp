@@ -31,7 +31,7 @@ public:
     bool isAlive() const { return alive; }
     bool facingLeft = false;
 
-    int life = 5;
+    int life = 7;
     bool skipCollisionFrame = false;
     float controlLock = 0.f;               
 

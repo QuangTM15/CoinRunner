@@ -45,12 +45,7 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
     // -------------------------
     // LOAD MAP
     // -------------------------
-    tileMap.loadFromFile("asset/maps/mapdemo.json", 16.f);
-
-    loadObjectsFromMap();
-    // Spawn player
-    player.setPosition(tileMap.spawnPoint);
-    lastCheckpoint = tileMap.spawnPoint;
+    loadLevel(1);
 
     camera.setCenter(player.getPosition());
     camera.zoom(0.5f);
@@ -148,7 +143,30 @@ void Game::update(float dt)
         if (intersectsRect(pbox, cp.rect))
             lastCheckpoint = cp.rect.position;
     }
+    // ---- GOAL ----
+    for (auto& g : tileMap.goals)
+    {
+        if (intersectsRect(pbox, g.rect))
+        {
+            if (!touchedGoal)
+            {
+                touchedGoal = true;
 
+                if (currentLevel < 3)
+                {
+                    std::cout << "[LEVEL] COMPLETE -> LOAD LEVEL "
+                            << (currentLevel + 1) << "\n";
+                    loadLevel(currentLevel + 1);
+                }
+                else
+                {
+                    std::cout << "[END GAME] DEV DI HOC ROI :))\n";
+                    reachedEndGame = true;
+                }
+            }
+        }
+    }
+    // ---- UPDATE CAMERA ----
     updateCamera();
 }
 
@@ -231,6 +249,30 @@ void Game::render()
     player.draw(window);
 
     window.display();
+}
+
+// --------------------LOAD LEVEL----------------------
+void Game::loadLevel(int level)
+{
+    currentLevel = level;
+
+    std::string path =
+        "asset/maps/level" + std::to_string(level) + ".json";
+
+    std::cout << "[LOAD] " << path << "\n";
+
+    tileMap.loadFromFile(path, 16.f);
+
+    // clear objects cũ
+    coins.clear();
+    traps.clear();
+
+    loadObjectsFromMap();
+
+    // reset player
+    player.setPosition(tileMap.spawnPoint);
+    lastCheckpoint = tileMap.spawnPoint;
+    touchedGoal = false;
 }
 
 

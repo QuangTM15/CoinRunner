@@ -155,6 +155,7 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
     trapsMoving.clear();
     checkpoints.clear();
     killzones.clear();
+    goals.clear();
 
     for (auto& layer : j["layers"])
     {
@@ -218,6 +219,12 @@ bool TileMap::loadFromFile(const std::string& mapFile, float tileSize)
             else if (type == "killzone")
             {
                 killzones.push_back(rect);
+            }
+            // ---- GOAL ----
+            else if (type == "goal")
+            {
+                MapObject g{ rect, gid };
+                goals.push_back(g);
             }
         }
     }

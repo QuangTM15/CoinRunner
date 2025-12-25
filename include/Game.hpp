@@ -21,6 +21,7 @@ private:
     void updateCoins(float dt);
     void updateTraps(float dt);
     void updateCamera();
+    void loadLevel(int level);
 
 private:
     sf::RenderWindow window;
@@ -42,5 +43,7 @@ private:
     sf::Texture texTrapStatic;
     sf::Texture texTrapMoveX;
     sf::Texture texTrapMoveY;
-
+    int currentLevel = 1;
+    bool reachedEndGame = false;
+    bool touchedGoal = false;
 };

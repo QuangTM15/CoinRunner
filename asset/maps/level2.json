@@ -145,8 +145,8 @@
                  "type":"spawn",
                  "visible":true,
                  "width":0,
-                 "x":185.333333333333,
-                 "y":399.333333333333
+                 "x":4569.09057575758,
+                 "y":442.788212121212
                 }, 
                 {
                  "height":16.6667,
@@ -3067,7 +3067,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":245,
+ "nextobjectid":246,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

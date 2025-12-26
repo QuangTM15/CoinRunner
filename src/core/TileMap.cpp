@@ -1,5 +1,5 @@
-#include "TileMap.hpp"
-#include "json.hpp"
+#include "core/TileMap.hpp"
+#include "json/json.hpp"
 #include <fstream>
 #include <iostream>
 #include <filesystem>

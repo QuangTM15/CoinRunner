@@ -1,4 +1,4 @@
-#include "Trap.hpp"
+#include "core/Trap.hpp"
 #include <cmath>
 
 Trap::Trap(Type t,

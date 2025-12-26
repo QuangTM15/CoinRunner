@@ -1,4 +1,4 @@
-#include "../include/Player.hpp"
+#include "core/Player.hpp"
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <cmath>

@@ -6,7 +6,8 @@
             "type": "shell",
             "command": "g++",
             "args": [
-                "${workspaceFolder}/src/*.cpp",
+                "${workspaceFolder}/src/main.cpp",
+                "${workspaceFolder}/src/core/*.cpp",
 
                 "-I${workspaceFolder}/include",
                 "-IC:/Users/-Asus/Downloads/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2/include",

@@ -1,4 +1,4 @@
-#include "TrapManager.hpp"
+#include "core/TrapManager.hpp"
 
 void TrapManager::setTextures(const sf::Texture& st,
                               const sf::Texture& mvX,

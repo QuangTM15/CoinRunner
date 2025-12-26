@@ -1,4 +1,4 @@
-#include "../include/Coin.hpp"
+#include "core/Coin.hpp"
 
 int Coin::totalCollected = 0;
 

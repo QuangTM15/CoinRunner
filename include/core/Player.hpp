@@ -32,7 +32,6 @@ public:
     bool facingLeft = false;
 
     int life = 7;
-    bool skipCollisionFrame = false;
     float controlLock = 0.f;               
 
 private:

@@ -1,5 +1,8 @@
 #include "core/Game.hpp"
 #include <iostream>
+#include <algorithm>
+#include "core/Config.hpp"
+#include <cmath>
 
 // ------------------------------------------------
 // Helper intersects for SFML3
@@ -19,12 +22,7 @@ static bool intersectsRect(const sf::Rect<float>& a, const sf::Rect<float>& b)
 // ------------------------------------------------
 Game::Game(unsigned int windowWidth, unsigned int windowHeight)
 {
-    window.create(sf::VideoMode({windowWidth, windowHeight}), "Coin Runner Game");
-
-    camWidth  = windowWidth;
-    camHeight = windowHeight;
-
-    camera.setSize({ camWidth, camHeight });
+    camera.setSize({ Config::GAME_W, Config::GAME_H });
 
     // -------------------------
     // LOAD TEXTURES
@@ -49,7 +47,6 @@ Game::Game(unsigned int windowWidth, unsigned int windowHeight)
 
     camera.setCenter(player.getPosition());
     camera.zoom(0.5f);
-    window.setView(camera);
 }
 
 // ------------------------------------------------
@@ -109,25 +106,13 @@ void Game::update(float dt)
 
     sf::Vector2f move = player.getVelocity() * dt;
     sf::Vector2f fix  = tileMap.checkCollision(player.getBounds(), move);
-    if (!player.skipCollisionFrame)
-    {
-        fix = tileMap.checkCollision(player.getBounds(), move);
-    }
-    else
-    {
-        player.skipCollisionFrame = false; // chỉ skip đúng 1 frame
-    }
     player.applyMovement(move, fix);
 
     sf::Rect<float> pbox = player.getBounds();
 
-    // ---- UPDATE COINS ----
     updateCoins(dt);
-
-    // ---- UPDATE TRAPS ----
     updateTraps(dt);
 
-    // ---- KILLZONES ----
     for (auto& r : tileMap.killzones)
     {
         if (intersectsRect(pbox, r))
@@ -137,13 +122,12 @@ void Game::update(float dt)
         }
     }
 
-    // ---- CHECKPOINT ----
     for (auto& cp : tileMap.checkpoints)
     {
         if (intersectsRect(pbox, cp.rect))
             lastCheckpoint = cp.rect.position;
     }
-    // ---- GOAL ----
+
     for (auto& g : tileMap.goals)
     {
         if (intersectsRect(pbox, g.rect))
@@ -155,7 +139,7 @@ void Game::update(float dt)
                 if (currentLevel < 3)
                 {
                     std::cout << "[LEVEL] COMPLETE -> LOAD LEVEL "
-                            << (currentLevel + 1) << "\n";
+                              << (currentLevel + 1) << "\n";
                     loadLevel(currentLevel + 1);
                 }
                 else
@@ -166,7 +150,7 @@ void Game::update(float dt)
             }
         }
     }
-    // ---- UPDATE CAMERA ----
+
     updateCamera();
 }
 
@@ -215,22 +199,27 @@ void Game::updateCamera()
 {
     sf::Vector2f center = player.getPosition();
 
-    float mapW = tileMap.getmapWidth()  * tileMap.tileWidth;
-    float mapH = tileMap.getmapHeight() * tileMap.tileHeight;
+    float mapW  = tileMap.getmapWidth()  * tileMap.tileWidth;
+    float mapH  = tileMap.getmapHeight() * tileMap.tileHeight;
 
     float halfW = camera.getSize().x * 0.5f;
     float halfH = camera.getSize().y * 0.5f;
 
-    auto clamp = [&](float v, float lo, float hi)
-    {
-        return std::max(lo, std::min(hi, v));
-    };
+    // Clamp X
+    if (center.x < halfW)
+        center.x = halfW;
+    else if (center.x > mapW - halfW)
+        center.x = mapW - halfW;
 
-    center.x = clamp(center.x, halfW, mapW - halfW);
-    center.y = clamp(center.y, halfH, mapH - halfH);
+    // Clamp Y (QUAN TRỌNG)
+    if (center.y < halfH)
+        center.y = halfH;
+    else if (center.y > mapH - halfH)
+        center.y = mapH - halfH;
 
     camera.setCenter(center);
 }
+
 
 
 // ------------------------------------------------
@@ -238,79 +227,83 @@ void Game::updateCamera()
 // ------------------------------------------------
 void Game::render()
 {
-    window.clear();
-    window.setView(camera);
+    if (!window)
+        return;
 
-    window.draw(tileMap);
+    window->setView(camera);
 
-    for (auto& c : coins) c.draw(window);
-    for (auto& t : traps) t.draw(window);
+    // MAP
+    window->draw(tileMap);
 
-    player.draw(window);
+    // COINS
+    for (auto& c : coins)
+        c.draw(*window);
 
-    window.display();
+    // TRAPS
+    for (auto& t : traps)
+        t.draw(*window);
+
+    // PLAYER
+    player.draw(*window);
 }
+
 
 // --------------------LOAD LEVEL----------------------
 void Game::loadLevel(int level)
 {
     currentLevel = level;
 
-    std::string path =
-        "asset/maps/level" + std::to_string(level) + ".json";
-
+    std::string path = "asset/maps/level" + std::to_string(level) + ".json";
     std::cout << "[LOAD] " << path << "\n";
 
-    tileMap.loadFromFile(path, 16.f);
+    tileMap.loadFromFile(path, Config::TILE_SIZE);
 
-    // clear objects cũ
     coins.clear();
     traps.clear();
-
     loadObjectsFromMap();
 
-    // reset player
-    player.setPosition(tileMap.spawnPoint);
-    lastCheckpoint = tileMap.spawnPoint;
+    // --- reset player (BẮT BUỘC) ---
+    sf::Vector2f spawn = tileMap.spawnPoint;
+    spawn.y -= 2.f;                     // nhấc lên 2px tránh dính tile
+
+    player.setPosition(spawn);
+    lastCheckpoint = spawn;
     touchedGoal = false;
+
+    camera.setCenter(player.getPosition());
 }
-
-
-// ------------------------------------------------
-// GAME LOOP
-// ------------------------------------------------
-void Game::run()
-{
-    sf::Clock clock;
-    float acc = 0.f;
-    const float dtFixed = 1.f / 60.f;
-
-    while (window.isOpen())
-    {
-        processEvents();
-
-        float dt = clock.restart().asSeconds();
-        acc += dt;
-
-        while (acc >= dtFixed)
-        {
-            update(dtFixed);
-            acc -= dtFixed;
-        }
-
-        render();
-    }
-}
-
 
 // ------------------------------------------------
 // PROCESS EVENTS
 // ------------------------------------------------
 void Game::processEvents()
 {
-    while (auto evt = window.pollEvent())
+    while (auto evt = window->pollEvent())
     {
         if (evt->is<sf::Event::Closed>())
-            window.close();
+            window->close();
     }
+}
+void Game::bindWindow(sf::RenderWindow& win)
+{
+    window = &win;
+
+    float winW = static_cast<float>(window->getSize().x);
+    float winH = static_cast<float>(window->getSize().y);
+
+    float scaleX = winW / Config::GAME_W;
+    float scaleY = winH / Config::GAME_H;
+    float scale  = std::floor(std::min(scaleX, scaleY));
+
+    if (scale < 1.f) scale = 1.f;
+
+    sf::Vector2f viewSize(
+        Config::GAME_W / scale,
+        Config::GAME_H / scale
+    );
+
+    camera.setSize(viewSize);
+    camera.setCenter({viewSize.x * 0.5f, viewSize.y * 0.5f});
+
+    window->setView(camera);
 }

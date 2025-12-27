@@ -9,13 +9,17 @@
 
 class Game {
 public:
+    // ------------------------------------------------
+    // Constructor
     Game(unsigned int windowWidth, unsigned int windowHeight);
-    void run();
 
-private:
+    // 🔹 API
+    void bindWindow(sf::RenderWindow& win);
     void processEvents();
     void update(float dt);
     void render();
+
+private:
 
     void loadObjectsFromMap();
     void updateCoins(float dt);
@@ -24,7 +28,7 @@ private:
     void loadLevel(int level);
 
 private:
-    sf::RenderWindow window;
+    sf::RenderWindow* window = nullptr;
     sf::View camera;
 
     float camWidth;

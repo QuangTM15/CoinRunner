@@ -1,9 +1,8 @@
-#include <SFML/Graphics.hpp>
-#include "core/Game.hpp"
+#include "core/App.hpp"
 
-int main() 
+int main()
 {
-    Game game(1280, 720);
-    game.run();
+    App app;
+    app.run();
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <cmath>
+#include "core/Config.hpp"
 
 Player::Player()
     : texIdle(), texRun(), texJump(), sprite(texIdle)
@@ -20,10 +21,10 @@ Player::Player()
     sprite.setOrigin({16.f, 16.f});
 
     // physics
-    speed        = 48.f;
-    gravity      = 1400.f;
-    desiredJumpHeight = 80.f;
-    maxFallSpeed = 900.f;
+    speed        = Config::PLAYER_SPEED;
+    gravity      = Config::PLAYER_GRAVITY;
+    desiredJumpHeight = Config::PLAYER_JUMP_HEIGHT;
+    maxFallSpeed = Config::PLAYER_MAX_FALL_SPEED;
 
     velocity = {0.f, 0.f};
 
@@ -218,7 +219,6 @@ void Player::respawn(const sf::Vector2f& pos)
     velocity = {0.f, 0.f};
     alive = true;
     canJump = true;
-    skipCollisionFrame = true;
     controlLock = 0.1f;
 }
 

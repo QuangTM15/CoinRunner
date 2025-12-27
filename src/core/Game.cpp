@@ -197,7 +197,8 @@ void Game::updateTraps(float dt)
 // ------------------------------------------------
 void Game::updateCamera()
 {
-    sf::Vector2f center = player.getPosition();
+    // ---- target theo player ----
+    sf::Vector2f target = player.getPosition();
 
     float mapW  = tileMap.getmapWidth()  * tileMap.tileWidth;
     float mapH  = tileMap.getmapHeight() * tileMap.tileHeight;
@@ -206,20 +207,24 @@ void Game::updateCamera()
     float halfH = camera.getSize().y * 0.5f;
 
     // Clamp X
-    if (center.x < halfW)
-        center.x = halfW;
-    else if (center.x > mapW - halfW)
-        center.x = mapW - halfW;
+    if (target.x < halfW)
+        target.x = halfW;
+    else if (target.x > mapW - halfW)
+        target.x = mapW - halfW;
 
-    // Clamp Y (QUAN TRỌNG)
-    if (center.y < halfH)
-        center.y = halfH;
-    else if (center.y > mapH - halfH)
-        center.y = mapH - halfH;
+    // Clamp Y (tạm giữ như hiện tại)
+    if (target.y < halfH)
+        target.y = halfH;
+    else if (target.y > mapH - halfH)
+        target.y = mapH - halfH;
 
-    camera.setCenter(center);
+    // ---- LERP ----
+    const float lerp = 0.1f; // zoom ~1.5x: đẹp
+
+    cameraCenter += (target - cameraCenter) * lerp;
+
+    camera.setCenter(cameraCenter);
 }
-
 
 
 // ------------------------------------------------
@@ -271,6 +276,7 @@ void Game::loadLevel(int level)
     touchedGoal = false;
 
     camera.setCenter(player.getPosition());
+    cameraCenter = camera.getCenter();
 }
 
 // ------------------------------------------------

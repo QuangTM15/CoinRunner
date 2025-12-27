@@ -30,7 +30,7 @@ private:
 private:
     sf::RenderWindow* window = nullptr;
     sf::View camera;
-
+    sf::Vector2f cameraCenter;
     float camWidth;
     float camHeight;
 

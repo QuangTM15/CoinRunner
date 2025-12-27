@@ -26,6 +26,6 @@ namespace Config {
     // =========================
     // GAME LOGIC RESOLUTION
     // =========================
-    static constexpr float GAME_W = 1280.f; // 20 tiles * 16px
-    static constexpr float GAME_H = 720.f; // chuẩn indie platformer
+    static constexpr float GAME_W = 850.f; 
+    static constexpr float GAME_H = 480.f; 
 }

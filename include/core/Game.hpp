@@ -50,4 +50,11 @@ private:
     int currentLevel = 1;
     bool reachedEndGame = false;
     bool touchedGoal = false;
+
+    // ---- Camera shake ----
+    bool  shakeActive = false;
+    float shakeTime   = 0.f;
+    float shakeTimer  = 0.f;
+    float shakePower  = 0.f;
+    void startCameraShake(float duration, float power);
 };

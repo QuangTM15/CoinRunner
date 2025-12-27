@@ -113,21 +113,25 @@ void Game::update(float dt)
     updateCoins(dt);
     updateTraps(dt);
 
+    // ---- CHECK KILLZONE 
     for (auto& r : tileMap.killzones)
     {
         if (intersectsRect(pbox, r))
         {
             player.onHitTrap();
+            startCameraShake(0.25f, 5.f);
             player.respawn(lastCheckpoint);
         }
     }
 
+    // ---- CHECK CHECKPOINT + GOAL ----
     for (auto& cp : tileMap.checkpoints)
     {
         if (intersectsRect(pbox, cp.rect))
             lastCheckpoint = cp.rect.position;
     }
-
+    
+    // Goal
     for (auto& g : tileMap.goals)
     {
         if (intersectsRect(pbox, g.rect))
@@ -186,6 +190,7 @@ void Game::updateTraps(float dt)
         if (intersectsRect(player.getBounds(), t.getBounds()))
         {
             player.onHitTrap();
+            startCameraShake(0.2f, 4.f);
             player.respawn(lastCheckpoint);
         }
     }
@@ -197,7 +202,7 @@ void Game::updateTraps(float dt)
 // ------------------------------------------------
 void Game::updateCamera()
 {
-    // ---- target theo player ----
+    // ---- target theo player + clamp (như bạn đang có) ----
     sf::Vector2f target = player.getPosition();
 
     float mapW  = tileMap.getmapWidth()  * tileMap.tileWidth;
@@ -206,26 +211,36 @@ void Game::updateCamera()
     float halfW = camera.getSize().x * 0.5f;
     float halfH = camera.getSize().y * 0.5f;
 
-    // Clamp X
-    if (target.x < halfW)
-        target.x = halfW;
-    else if (target.x > mapW - halfW)
-        target.x = mapW - halfW;
+    if (target.x < halfW) target.x = halfW;
+    else if (target.x > mapW - halfW) target.x = mapW - halfW;
 
-    // Clamp Y (tạm giữ như hiện tại)
-    if (target.y < halfH)
-        target.y = halfH;
-    else if (target.y > mapH - halfH)
-        target.y = mapH - halfH;
+    if (target.y < halfH) target.y = halfH;
+    else if (target.y > mapH - halfH) target.y = mapH - halfH;
 
     // ---- LERP ----
-    const float lerp = 0.1f; // zoom ~1.5x: đẹp
-
+    const float lerp = 0.1f;
     cameraCenter += (target - cameraCenter) * lerp;
 
-    camera.setCenter(cameraCenter);
-}
+    // ---- SHAKE ----
+    sf::Vector2f finalCenter = cameraCenter;
 
+    if (shakeActive)
+    {
+        shakeTimer -= 1.f / 60.f; // vì dt đã clamp
+
+        float offsetX = (std::rand() / (float)RAND_MAX * 2.f - 1.f) * shakePower;
+        float offsetY = (std::rand() / (float)RAND_MAX * 2.f - 1.f) * shakePower;
+
+        finalCenter += { offsetX, offsetY };
+
+        if (shakeTimer <= 0.f)
+        {
+            shakeActive = false;
+        }
+    }
+
+    camera.setCenter(finalCenter);
+}
 
 // ------------------------------------------------
 // RENDER
@@ -312,4 +327,11 @@ void Game::bindWindow(sf::RenderWindow& win)
     camera.setCenter({viewSize.x * 0.5f, viewSize.y * 0.5f});
 
     window->setView(camera);
+}
+void Game::startCameraShake(float duration, float power)
+{
+    shakeActive = true;
+    shakeTime   = duration;
+    shakeTimer  = duration;
+    shakePower  = power;
 }

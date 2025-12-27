@@ -145,8 +145,8 @@
                  "type":"spawn",
                  "visible":true,
                  "width":0,
-                 "x":4577.5167,
-                 "y":444.572666666667
+                 "x":4577.52,
+                 "y":444.573
                 }, 
                 {
                  "height":16.6667,
@@ -2133,6 +2133,17 @@
                  "width":16,
                  "x":4530.5,
                  "y":443
+                }, 
+                {
+                 "height":12.6666666666667,
+                 "id":162,
+                 "name":"",
+                 "rotation":0,
+                 "type":"killzone",
+                 "visible":true,
+                 "width":174.000333333333,
+                 "x":4336.6665,
+                 "y":499.333333333333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -2141,7 +2152,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":162,
+ "nextobjectid":163,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

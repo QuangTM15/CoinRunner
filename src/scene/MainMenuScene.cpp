@@ -1,5 +1,7 @@
 #include "scene/MainMenuScene.hpp"
 #include <iostream>
+#include <scene/PlayScene.hpp>
+#include <scene/SceneManager.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)
@@ -90,12 +92,18 @@ void MainMenuScene::initMenuItems()
     // -------- PLAY --------
     {
         MenuItem play;
-        play.text.emplace(uiFont);                 // ✅ CHỈ truyền font
-        play.text->setString("PLAY");              // ✅ set sau
-        play.text->setCharacterSize(CHAR_SIZE);
-        play.text->setScale(SCALE);
+        play.text.emplace(uiFont);
+        play.text->setString("PLAY");
+        play.text->setCharacterSize(16);
+        play.text->setScale({4.f, 4.f});
         play.text->setFillColor(sf::Color::White);
-        play.action = [](){};
+        play.action = [this]()
+        {
+            std::cout << "[MainMenuScene] PLAY pressed -> PlayScene\n";
+            manager.change(
+                std::make_unique<PlayScene>(manager, window)
+            );
+        };
         items.push_back(std::move(play));
     }
 

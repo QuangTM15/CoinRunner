@@ -2,6 +2,7 @@
 #include "scene/PlayScene.hpp"
 #include "scene/SceneManager.hpp"
 #include <iostream>
+#include <core/AudioManager.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)
@@ -144,6 +145,10 @@ void MainMenuScene::initMenuItems()
     makeItem("MUSIC: ON", [this]()
     {
         musicOn = !musicOn;
+
+        // 🔥 DÒNG QUYẾT ĐỊNH: chỉ tắt / bật NHẠC NỀN
+        AudioManager::get().setMusicEnabled(musicOn);
+
         auto& t = *items[selectedIndex].text;
         t.setString(musicOn ? "MUSIC: ON" : "MUSIC: OFF");
     });

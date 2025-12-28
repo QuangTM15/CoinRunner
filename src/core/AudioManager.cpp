@@ -34,26 +34,21 @@ void AudioManager::init()
     sHit->setVolume(200.f);
 }
 
-void AudioManager::setEnabled(bool on)
+void AudioManager::setMusicEnabled(bool on)
 {
-    enabled = on;
-    if (!enabled)
-    {
+    musicEnabled = on;
+    if (!musicEnabled)
         stopBackground();
-        if (sJump) sJump->stop();
-        if (sCoin) sCoin->stop();
-        if (sHit)  sHit->stop();
-    }
 }
 
-bool AudioManager::isEnabled() const
+bool AudioManager::isMusicEnabled() const
 {
-    return enabled;
+    return musicEnabled;
 }
 
 void AudioManager::playBackground()
 {
-    if (!enabled) return;
+    if (!musicEnabled) return;
     if (bg.getStatus() != sf::Music::Status::Playing)
         bg.play();
 }
@@ -65,18 +60,15 @@ void AudioManager::stopBackground()
 
 void AudioManager::playJump()
 {
-    if (!enabled || !sJump) return;
     sJump->play();
 }
 
 void AudioManager::playCoin()
 {
-    if (!enabled || !sCoin) return;
     sCoin->play();
 }
 
 void AudioManager::playHit()
 {
-    if (!enabled || !sHit) return;
     sHit->play();
 }

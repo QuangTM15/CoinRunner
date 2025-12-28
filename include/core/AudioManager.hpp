@@ -9,8 +9,9 @@ public:
 
     void init();
 
-    void setEnabled(bool on);
-    bool isEnabled() const;
+    // 🎵 MUSIC
+    void setMusicEnabled(bool on);
+    bool isMusicEnabled() const;
 
     void playBackground();
     void stopBackground();
@@ -22,7 +23,7 @@ public:
 private:
     AudioManager() = default;
 
-    bool enabled = true;
+    bool musicEnabled = true;
 
     sf::Music bg;
 

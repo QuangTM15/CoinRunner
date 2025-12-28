@@ -1,5 +1,7 @@
 #include "core/App.hpp"
 #include "scene/PlayScene.hpp"
+#include "scene/MainMenuScene.hpp"
+#include <iostream>
 
 App::App()
 : window(sf::VideoMode({1280u, 720u}), "CoinRunner")
@@ -8,12 +10,14 @@ App::App()
     window.setFramerateLimit(60);
 
     sceneManager.change(
-        std::make_unique<PlayScene>(sceneManager, window)
+        std::make_unique<MainMenuScene>(sceneManager, window)
     );
 }
 
 void App::run()
 {
+    std::cout << "[App] run()\n";
+
     while (window.isOpen())
     {
         processEvents();

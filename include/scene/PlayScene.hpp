@@ -9,6 +9,8 @@ public:
     void handleEvent(const sf::Event& e) override;
     void update(float dt) override;
     void render(sf::RenderWindow& window) override;
+    void onEnter() override;
+    void onExit() override;
 
 private:
     Game game;

@@ -1,6 +1,7 @@
 #include "scene/PlayScene.hpp"
 #include "scene/SceneManager.hpp"
 #include <iostream>
+#include "core/AudioManager.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window)
 : Scene(mgr)
@@ -28,4 +29,14 @@ void PlayScene::render(sf::RenderWindow&)
         once = true;
     }
     game.render();
+}
+
+void PlayScene::onEnter()
+{
+    AudioManager::get().playBackground();
+}
+
+void PlayScene::onExit()
+{
+    AudioManager::get().stopBackground();
 }

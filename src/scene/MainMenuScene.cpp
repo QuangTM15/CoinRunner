@@ -1,7 +1,7 @@
 #include "scene/MainMenuScene.hpp"
+#include "scene/PlayScene.hpp"
+#include "scene/SceneManager.hpp"
 #include <iostream>
-#include <scene/PlayScene.hpp>
-#include <scene/SceneManager.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)
@@ -30,31 +30,21 @@ void MainMenuScene::handleEvent(const sf::Event& e)
     }
     else if (e.is<sf::Event::MouseMoved>())
     {
-        auto pos = e.getIf<sf::Event::MouseMoved>()->position;
-        handleMouseMove({ (float)pos.x, (float)pos.y });
+        auto p = e.getIf<sf::Event::MouseMoved>()->position;
+        handleMouseMove({ (float)p.x, (float)p.y });
     }
     else if (e.is<sf::Event::MouseButtonPressed>())
     {
-        auto btn = e.getIf<sf::Event::MouseButtonPressed>();
-        if (btn->button == sf::Mouse::Button::Left)
-        {
-            handleMouseClick({ (float)btn->position.x, (float)btn->position.y });
-        }
+        auto b = e.getIf<sf::Event::MouseButtonPressed>();
+        if (b->button == sf::Mouse::Button::Left)
+            handleMouseClick({ (float)b->position.x, (float)b->position.y });
     }
 }
 
-void MainMenuScene::update(float)
-{
-}
+void MainMenuScene::update(float) {}
 
 void MainMenuScene::render(sf::RenderWindow& window)
 {
-    static bool once = false;
-    if (!once)
-    {
-        std::cout << "[MainMenuScene] render()\n";
-        once = true;
-    }
     if (panelSprite)
         window.draw(*panelSprite);
 
@@ -62,154 +52,165 @@ void MainMenuScene::render(sf::RenderWindow& window)
     {
         if (item.sprite)
             window.draw(*item.sprite);
-        else if (item.text)
+
+        if (item.text)
             window.draw(*item.text);
     }
 }
 
-// ================= Init =================
+// ================= INIT =================
 
 void MainMenuScene::initAssets()
 {
+    // ---- FONT ----
     if (!uiFont.openFromFile("asset/ui/fonts/pixel.ttf"))
-    {
-        std::cout << "[MainMenuScene] FAILED to load font\n";
-    }
-    else
-    {
-        std::cout << "[MainMenuScene] Font loaded OK\n";
-    }
-}
+        std::cout << "[Menu] Font load failed\n";
 
+    // ---- PANEL TEXTURE ----
+    if (!panelTexture.loadFromFile("asset/ui/panels/panel.png"))
+        std::cout << "[Menu] Panel load failed\n";
+
+    panelSprite.emplace(panelTexture);
+
+    // origin giữa panel
+    panelSprite->setOrigin({
+        panelTexture.getSize().x * 0.5f,
+        panelTexture.getSize().y * 0.5f
+    });
+
+    // ======SCALE PANEL ======
+    const float targetWidth  = window.getSize().x * 1.2f;
+    const float targetHeight = window.getSize().y * 1.2f;
+
+    const sf::Vector2f panelSize(
+        static_cast<float>(panelTexture.getSize().x),
+        static_cast<float>(panelTexture.getSize().y)
+    );
+
+    panelSprite->setScale({
+        targetWidth  / panelSize.x,
+        targetHeight / panelSize.y
+    });
+    // position giữa màn hình
+    panelSprite->setPosition({
+        window.getSize().x * 0.5f,
+        window.getSize().y * 0.5f
+    });
+}
 
 void MainMenuScene::initMenuItems()
 {
     items.clear();
 
-    constexpr unsigned int CHAR_SIZE = 16;
-    const sf::Vector2f SCALE = {4.f, 4.f};
+    constexpr unsigned int CHAR_SIZE = 12;
+    const sf::Vector2f TEXT_SCALE{2.f, 2.f};
+    const sf::Vector2f BTN_SCALE{12.f, 4.f};
 
-    // -------- PLAY --------
+    auto makeItem = [&](const std::string& label, std::function<void()> action)
     {
-        MenuItem play;
-        play.text.emplace(uiFont);
-        play.text->setString("PLAY");
-        play.text->setCharacterSize(16);
-        play.text->setScale({4.f, 4.f});
-        play.text->setFillColor(sf::Color::White);
-        play.action = [this]()
+        MenuItem item;
+
+        item.text.emplace(uiFont, label, CHAR_SIZE);
+        item.text->setScale(TEXT_SCALE);
+        item.text->setFillColor(sf::Color::White);
+
+        if (!item.texNormal.loadFromFile("asset/ui/buttons/btn_normal.png"))
         {
-            std::cout << "[MainMenuScene] PLAY pressed -> PlayScene\n";
-            manager.change(
-                std::make_unique<PlayScene>(manager, window)
-            );
-        };
-        items.push_back(std::move(play));
-    }
-
-    // -------- LEVEL SELECT --------
-    {
-        MenuItem level;
-        level.text.emplace(uiFont);
-        level.text->setString("LEVEL SELECT");
-        level.text->setCharacterSize(CHAR_SIZE);
-        level.text->setScale(SCALE);
-        level.text->setFillColor(sf::Color::White);
-        level.action = [](){};
-        items.push_back(std::move(level));
-    }
-
-    // -------- MUSIC --------
-    {
-        MenuItem music;
-        music.text.emplace(uiFont);
-        music.text->setString("MUSIC: ON");
-        music.text->setCharacterSize(CHAR_SIZE);
-        music.text->setScale(SCALE);
-        music.text->setFillColor(sf::Color::White);
-        music.action = [this]()
+            std::cout << "[Menu] Failed to load btn_normal.png\n";
+        }
+        if (!item.texHover.loadFromFile("asset/ui/buttons/btn_hover.png"))
         {
-            musicOn = !musicOn;
-            auto& item = items[selectedIndex];
-            if (item.text)
-                item.text->setString(musicOn ? "MUSIC: ON" : "MUSIC: OFF");
-        };
-        items.push_back(std::move(music));
-    }
-
-    // -------- EXIT --------
-    {
-        MenuItem exit;
-        exit.text.emplace(uiFont);
-        exit.text->setString("EXIT");
-        exit.text->setCharacterSize(CHAR_SIZE);
-        exit.text->setScale(SCALE);
-        exit.text->setFillColor(sf::Color::White);
-        exit.action = [this]()
+            std::cout << "[Menu] Failed to load btn_hover.png\n";
+        }
+        if (!item.texPressed.loadFromFile("asset/ui/buttons/btn_pressed.png"))
         {
-            window.close();
-        };
-        items.push_back(std::move(exit));
-    }
+            std::cout << "[Menu] Failed to load btn_pressed.png\n";
+        }
+
+        item.sprite.emplace(item.texNormal);
+        item.sprite->setScale(BTN_SCALE);
+
+        item.action = std::move(action);
+        items.push_back(std::move(item));
+    };
+
+    makeItem("PLAY", [this]()
+    {
+        manager.change(std::make_unique<PlayScene>(manager, window));
+    });
+
+    makeItem("LEVEL SELECT", [](){});
+
+    makeItem("MUSIC: ON", [this]()
+    {
+        musicOn = !musicOn;
+        auto& t = *items[selectedIndex].text;
+        t.setString(musicOn ? "MUSIC: ON" : "MUSIC: OFF");
+    });
+
+    makeItem("EXIT", [this]()
+    {
+        window.close();
+    });
 }
 
 void MainMenuScene::initLayout()
 {
-    const sf::Vector2f winSize(
-        static_cast<float>(window.getSize().x),
-        static_cast<float>(window.getSize().y)
-    );
-
-    const float centerX = winSize.x * 0.5f;
-    const float startY  = winSize.y * 0.3f;
-    const float spacing = 90.f;
+    const float cx  = window.getSize().x * 0.5f;
+    const float sy  = window.getSize().y * 0.2f;
+    const float gap = 150.f; // tách các button ra rõ hơn
 
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        if (!items[i].text) continue;
+        auto& item = items[i];
+        if (!item.text || !item.sprite)
+            continue;
 
-        auto& text = *items[i].text;
+        auto& txt = *item.text;
+        auto& btn = *item.sprite;
 
-        // ⚠️ BẮT BUỘC: đảm bảo bounds đã update
-        sf::FloatRect bounds = text.getLocalBounds();
+        // ===== BUTTON =====
+        sf::FloatRect bb = btn.getLocalBounds();
+        btn.setOrigin({bb.size.x * 0.5f, bb.size.y * 0.5f});
+        btn.setPosition({cx, sy + i * gap});
 
-        // Căn giữa text
-        text.setOrigin({
-            bounds.position.x + bounds.size.x * 0.5f,
-            bounds.position.y + bounds.size.y * 0.5f
+        // ===== TEXT =====
+        sf::FloatRect tb = txt.getLocalBounds();
+        txt.setOrigin(
+            {tb.position.x + tb.size.x * 0.5f,
+            tb.position.y + tb.size.y * 0.5f
         });
 
-        // Đặt vị trí
-        text.setPosition({
-            centerX,
-            startY + i * spacing
-        });
+        // 👉 text luôn nằm giữa button
+        txt.setPosition(btn.getPosition());
     }
+
+    updateVisual();
 }
+
+// ================= INPUT =================
 
 void MainMenuScene::handleKeyboard(sf::Keyboard::Key key)
 {
+    items[selectedIndex].state = ButtonState::Normal;
+
     if (key == sf::Keyboard::Key::Up)
     {
-        selectedIndex--;
-        if (selectedIndex < 0)
-            selectedIndex = (int)items.size() - 1;
+        selectedIndex = (selectedIndex - 1 + items.size()) % items.size();
     }
     else if (key == sf::Keyboard::Key::Down)
     {
-        selectedIndex++;
-        if (selectedIndex >= (int)items.size())
-            selectedIndex = 0;
+        selectedIndex = (selectedIndex + 1) % items.size();
     }
     else if (key == sf::Keyboard::Key::Enter)
     {
+        items[selectedIndex].state = ButtonState::Pressed;
+        updateVisual();
         items[selectedIndex].action();
-    }
-    else if (key == sf::Keyboard::Key::Escape)
-    {
-        window.close();
+        return;
     }
 
+    items[selectedIndex].state = ButtonState::Hover;
     updateVisual();
 }
 
@@ -217,13 +218,15 @@ void MainMenuScene::handleMouseMove(sf::Vector2f mousePos)
 {
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        if (!items[i].text) continue;
+        auto& item = items[i];
+        if (!item.sprite) continue;
 
-        if (items[i].text->getGlobalBounds().contains(mousePos))
+        if (item.sprite->getGlobalBounds().contains(mousePos))
         {
             if (selectedIndex != i)
             {
                 selectedIndex = i;
+                item.state = ButtonState::Hover;
                 updateVisual();
             }
             return;
@@ -231,18 +234,21 @@ void MainMenuScene::handleMouseMove(sf::Vector2f mousePos)
     }
 }
 
-
 void MainMenuScene::handleMouseClick(sf::Vector2f mousePos)
 {
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        if (!items[i].text) continue;
+        auto& item = items[i];
+        if (!item.sprite) continue;
 
-        if (items[i].text->getGlobalBounds().contains(mousePos))
+        if (item.sprite->getGlobalBounds().contains(mousePos))
         {
             selectedIndex = i;
+            item.state = ButtonState::Pressed;
             updateVisual();
-            items[i].action();
+
+            // chạy action
+            item.action();
             return;
         }
     }
@@ -252,12 +258,34 @@ void MainMenuScene::updateVisual()
 {
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        if (!items[i].text) continue;
+        auto& item = items[i];
 
-        items[i].text->setFillColor(
-            i == selectedIndex
-                ? sf::Color(255, 220, 40)
-                : sf::Color::White
-        );
+        // ----- TEXT COLOR -----
+        if (item.text)
+        {
+            item.text->setFillColor(
+                i == selectedIndex
+                    ? sf::Color(255, 220, 40)
+                    : sf::Color::White
+            );
+        }
+
+        // ----- BUTTON TEXTURE -----
+        if (!item.sprite) continue;
+
+        switch (item.state)
+        {
+        case ButtonState::Normal:
+            item.sprite->setTexture(item.texNormal);
+            break;
+
+        case ButtonState::Hover:
+            item.sprite->setTexture(item.texHover);
+            break;
+
+        case ButtonState::Pressed:
+            item.sprite->setTexture(item.texPressed);
+            break;
+        }
     }
 }

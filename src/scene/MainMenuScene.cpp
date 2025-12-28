@@ -26,6 +26,19 @@ void MainMenuScene::handleEvent(const sf::Event& e)
     {
         handleKeyboard(e.getIf<sf::Event::KeyPressed>()->code);
     }
+    else if (e.is<sf::Event::MouseMoved>())
+    {
+        auto pos = e.getIf<sf::Event::MouseMoved>()->position;
+        handleMouseMove({ (float)pos.x, (float)pos.y });
+    }
+    else if (e.is<sf::Event::MouseButtonPressed>())
+    {
+        auto btn = e.getIf<sf::Event::MouseButtonPressed>();
+        if (btn->button == sf::Mouse::Button::Left)
+        {
+            handleMouseClick({ (float)btn->position.x, (float)btn->position.y });
+        }
+    }
 }
 
 void MainMenuScene::update(float)
@@ -192,12 +205,39 @@ void MainMenuScene::handleKeyboard(sf::Keyboard::Key key)
     updateVisual();
 }
 
-void MainMenuScene::handleMouseMove(sf::Vector2f)
+void MainMenuScene::handleMouseMove(sf::Vector2f mousePos)
 {
+    for (int i = 0; i < (int)items.size(); ++i)
+    {
+        if (!items[i].text) continue;
+
+        if (items[i].text->getGlobalBounds().contains(mousePos))
+        {
+            if (selectedIndex != i)
+            {
+                selectedIndex = i;
+                updateVisual();
+            }
+            return;
+        }
+    }
 }
 
-void MainMenuScene::handleMouseClick(sf::Vector2f)
+
+void MainMenuScene::handleMouseClick(sf::Vector2f mousePos)
 {
+    for (int i = 0; i < (int)items.size(); ++i)
+    {
+        if (!items[i].text) continue;
+
+        if (items[i].text->getGlobalBounds().contains(mousePos))
+        {
+            selectedIndex = i;
+            updateVisual();
+            items[i].action();
+            return;
+        }
+    }
 }
 
 void MainMenuScene::updateVisual()
@@ -206,9 +246,10 @@ void MainMenuScene::updateVisual()
     {
         if (!items[i].text) continue;
 
-        if (i == selectedIndex)
-            items[i].text->setFillColor(sf::Color::Yellow);
-        else
-            items[i].text->setFillColor(sf::Color::White);
+        items[i].text->setFillColor(
+            i == selectedIndex
+                ? sf::Color(255, 220, 40)
+                : sf::Color::White
+        );
     }
 }

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "core/Config.hpp"
 #include <cmath>
-
+#include "core/AudioManager.hpp"
 // ------------------------------------------------
 // Helper intersects for SFML3
 // ------------------------------------------------
@@ -104,6 +104,12 @@ void Game::update(float dt)
 {
     player.update(dt);
 
+    if (player.didJump())
+    {
+        AudioManager::get().playJump();
+        player.resetJumpFlag();
+    }
+
     sf::Vector2f move = player.getVelocity() * dt;
     sf::Vector2f fix  = tileMap.checkCollision(player.getBounds(), move);
     player.applyMovement(move, fix);
@@ -119,6 +125,7 @@ void Game::update(float dt)
         if (intersectsRect(pbox, r))
         {
             player.onHitTrap();
+            AudioManager::get().playHit(); 
             startCameraShake(0.25f, 5.f);
             player.respawn(lastCheckpoint);
         }
@@ -171,6 +178,7 @@ void Game::updateCoins(float dt)
         if (it->checkCollected(player.getBounds()))
         {
             coinCount++;
+            AudioManager::get().playCoin();
             it = coins.erase(it);
         }
         else ++it;
@@ -190,6 +198,7 @@ void Game::updateTraps(float dt)
         if (intersectsRect(player.getBounds(), t.getBounds()))
         {
             player.onHitTrap();
+            AudioManager::get().playHit(); 
             startCameraShake(0.2f, 4.f);
             player.respawn(lastCheckpoint);
         }

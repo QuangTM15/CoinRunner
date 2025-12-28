@@ -67,6 +67,7 @@ void Player::update(float dt)
     if (velocity.y > maxFallSpeed)
         velocity.y = maxFallSpeed;
     updateAnimation(dt);
+
 }
 
 void Player::handleInput(float dt)
@@ -90,6 +91,7 @@ void Player::handleInput(float dt)
         float jumpVelocity = std::sqrt(2.f * gravity * desiredJumpHeight);
         velocity.y = -jumpVelocity;
         canJump = false;
+        jumpedThisFrame = true; 
     }
 }
 
@@ -208,7 +210,6 @@ void Player::updateAnimation(float dt)
 void Player::onHitTrap()
 {
     life--;
-
     if (life <= 0)
         alive = false;
 }

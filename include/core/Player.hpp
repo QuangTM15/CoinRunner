@@ -32,7 +32,10 @@ public:
     bool facingLeft = false;
 
     int life = 7;
-    float controlLock = 0.f;               
+    float controlLock = 0.f; 
+    
+    bool didJump() const { return jumpedThisFrame; }
+    void resetJumpFlag() { jumpedThisFrame = false; }
 
 private:
 
@@ -72,4 +75,5 @@ private:
     bool canJump = true;
 
     bool alive = true;
+    bool jumpedThisFrame = false;
 };

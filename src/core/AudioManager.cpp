@@ -14,6 +14,7 @@ void AudioManager::init()
         std::cout << "[Audio] Failed to load MusicBackGround.mp3\n";
 
     bg.setLooping(true); // ✅ SFML 3
+    bg.setVolume(35.f);
 
     // ---- SFX ----
     if (!bufJump.loadFromFile("asset/sounds/jump.wav"))
@@ -27,6 +28,10 @@ void AudioManager::init()
     sJump.emplace(bufJump);
     sCoin.emplace(bufCoin);
     sHit.emplace(bufHit);
+
+    sJump->setVolume(100.f);
+    sCoin->setVolume(90.f);
+    sHit->setVolume(200.f);
 }
 
 void AudioManager::setEnabled(bool on)

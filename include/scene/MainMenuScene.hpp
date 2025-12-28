@@ -60,10 +60,11 @@ private:
     sf::RenderWindow& window;
 
     // UI assets (lazy)
-    std::optional<sf::Font> uiFont;
+    sf::Font uiFont;
     std::optional<sf::Texture> panelTexture;
     std::optional<sf::Sprite>  panelSprite;
 
     std::vector<MenuItem> items;
     int selectedIndex = 0;
+    bool musicOn = true;
 };

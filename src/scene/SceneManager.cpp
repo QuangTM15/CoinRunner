@@ -3,8 +3,6 @@
 
 void SceneManager::change(std::unique_ptr<Scene> scene)
 {
-    std::cout << "[SceneManager] change()\n";
-
     if (current)
         current->onExit();
 

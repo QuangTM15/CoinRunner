@@ -3,6 +3,7 @@
 #include "scene/MainMenuScene.hpp"
 #include <iostream>
 #include <system/AudioManager.hpp>
+#include <system/SaveManager.hpp>
 
 App::App()
 : window(sf::VideoMode({1280u, 720u}), "CoinRunner")
@@ -11,7 +12,8 @@ App::App()
     window.setFramerateLimit(60);
     
     AudioManager::get().init();
-    
+    SaveManager::get().init();
+
     sceneManager.change(
         std::make_unique<MainMenuScene>(sceneManager, window)
     );
@@ -19,9 +21,6 @@ App::App()
 
 void App::run()
 {
-    std::cout << "[App] run()\n";
-
-
     while (window.isOpen())
     {
         processEvents();

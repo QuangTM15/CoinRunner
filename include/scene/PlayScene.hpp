@@ -4,7 +4,7 @@
 
 class PlayScene : public Scene {
 public:
-    PlayScene(SceneManager& mgr, sf::RenderWindow& window);
+    PlayScene(SceneManager& mgr, sf::RenderWindow& window, int startLevel = 1);
 
     void handleEvent(const sf::Event& e) override;
     void update(float dt) override;

@@ -21,6 +21,7 @@ public:
     bool isLevelCompleted() const { return levelCompleted; }
     bool isEndGame() const { return reachedEndGame; }
     int  getCurrentLevel() const { return currentLevel; }
+    void startLevel(int level);
 
 private:
 

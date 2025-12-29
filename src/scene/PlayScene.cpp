@@ -4,11 +4,12 @@
 #include "system/AudioManager.hpp"
 #include "system/SaveManager.hpp"
 
-PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window)
+PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window, int startLevel)
 : Scene(mgr)
 , game(window.getSize().x, window.getSize().y)
 {
     game.bindWindow(window);
+    game.startLevel(startLevel);
 }
 
 void PlayScene::handleEvent(const sf::Event&)

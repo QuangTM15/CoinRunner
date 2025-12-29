@@ -300,6 +300,11 @@ void Game::loadLevel(int level)
     cameraCenter = camera.getCenter();
 }
 
+void Game::startLevel(int level)
+{
+    loadLevel(level);
+}
+
 // ------------------------------------------------
 // PROCESS EVENTS
 // ------------------------------------------------

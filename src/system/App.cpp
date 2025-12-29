@@ -13,6 +13,7 @@ App::App()
     
     AudioManager::get().init();
     SaveManager::get().init();
+    SaveManager::get().load();
 
     sceneManager.change(
         std::make_unique<MainMenuScene>(sceneManager, window)

@@ -1,5 +1,10 @@
 #include "system/SaveManager.hpp"
 #include <iostream>
+#include <json/json.hpp>
+#include <filesystem>
+#include <fstream>
+
+using json = nlohmann::json;
 
 #ifdef _WIN32
     #include <cstdlib> // for std::getenv
@@ -69,4 +74,56 @@ std::filesystem::path SaveManager::computeFallbackPath_ExeDir() const {
 #endif
     // fallback cuối: current working directory
     return std::filesystem::current_path() / "save.json";
+}
+
+void SaveManager::load()
+{
+    // nếu chưa tồn tại → tạo file mặc định
+    if (!std::filesystem::exists(saveFilePath))
+    {
+        std::cout << "[Save] No save file. Create default.\n";
+        maxUnlockedLevel = 1;
+        save();
+        return;
+    }
+
+    std::ifstream in(saveFilePath);
+    if (!in.is_open())
+    {
+        std::cout << "[Save] Cannot open save file. Use default.\n";
+        maxUnlockedLevel = 1;
+        return;
+    }
+
+    try
+    {
+        json j;
+        in >> j;
+        maxUnlockedLevel = j.value("maxUnlockedLevel", 1);
+        std::cout << "[Save] Loaded. maxUnlockedLevel = "
+                  << maxUnlockedLevel << "\n";
+    }
+    catch (...)
+    {
+        std::cout << "[Save] Save file corrupted. Reset.\n";
+        maxUnlockedLevel = 1;
+        save();
+    }
+}
+
+void SaveManager::save()
+{
+    json j;
+    j["maxUnlockedLevel"] = maxUnlockedLevel;
+
+    std::ofstream out(saveFilePath);
+    if (!out.is_open())
+    {
+        std::cout << "[Save] Cannot write save file!\n";
+        return;
+    }
+
+    out << j.dump(4);
+    std::cout << "[Save] Saved. maxUnlockedLevel = "
+              << maxUnlockedLevel << "\n";
 }

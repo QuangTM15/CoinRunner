@@ -18,9 +18,13 @@ public:
     void processEvents();
     void update(float dt);
     void render();
+    bool isLevelCompleted() const { return levelCompleted; }
+    bool isEndGame() const { return reachedEndGame; }
+    int  getCurrentLevel() const { return currentLevel; }
 
 private:
 
+    // 🔹 Internal methods
     void loadObjectsFromMap();
     void updateCoins(float dt);
     void updateTraps(float dt);
@@ -28,28 +32,35 @@ private:
     void loadLevel(int level);
 
 private:
+
     sf::RenderWindow* window = nullptr;
     sf::View camera;
     sf::Vector2f cameraCenter;
     float camWidth;
     float camHeight;
-
+    // Game entities
     Player player;
     TileMap tileMap;
-
+    // Game objects
     std::vector<Coin> coins;
     std::vector<Trap> traps;
 
+
     int coinCount = 0;
+    // Checkpoint
     sf::Vector2f lastCheckpoint;
 
+    // Textures
     sf::Texture texCoin;
     sf::Texture texTrapStatic;
     sf::Texture texTrapMoveX;
     sf::Texture texTrapMoveY;
+
+    // ---- Level management ----
     int currentLevel = 1;
     bool reachedEndGame = false;
     bool touchedGoal = false;
+    bool levelCompleted = false;
 
     // ---- Camera shake ----
     bool  shakeActive = false;

@@ -18,6 +18,9 @@ public:
     // lấy/đặt level mở khóa tối đa
     int  getMaxUnlockedLevel() const { return maxUnlockedLevel; }
 
+    // mở khóa level mới
+    void unlockLevel(int level);
+
 private:
     SaveManager() = default;
 

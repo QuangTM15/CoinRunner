@@ -2,6 +2,7 @@
 #include "scene/SceneManager.hpp"
 #include <iostream>
 #include "system/AudioManager.hpp"
+#include "system/SaveManager.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window)
 : Scene(mgr)
@@ -18,6 +19,11 @@ void PlayScene::handleEvent(const sf::Event&)
 void PlayScene::update(float dt)
 {
     game.update(dt);
+    if (game.isLevelCompleted())
+    {
+        int nextLevel = game.getCurrentLevel() + 1;
+        SaveManager::get().unlockLevel(nextLevel);
+    }
 }
 
 void PlayScene::render(sf::RenderWindow&)

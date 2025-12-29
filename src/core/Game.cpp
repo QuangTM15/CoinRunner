@@ -147,17 +147,13 @@ void Game::update(float dt)
             {
                 touchedGoal = true;
 
-                if (currentLevel < 3)
+                levelCompleted = true;
+
+                if (currentLevel >= 3)
                 {
-                    std::cout << "[LEVEL] COMPLETE -> LOAD LEVEL "
-                              << (currentLevel + 1) << "\n";
-                    loadLevel(currentLevel + 1);
-                }
-                else
-                {
-                    std::cout << "[END GAME] DEV DI HOC ROI :))\n";
                     reachedEndGame = true;
                 }
+
             }
         }
     }
@@ -298,6 +294,7 @@ void Game::loadLevel(int level)
     player.setPosition(spawn);
     lastCheckpoint = spawn;
     touchedGoal = false;
+    levelCompleted = false;
 
     camera.setCenter(player.getPosition());
     cameraCenter = camera.getCenter();

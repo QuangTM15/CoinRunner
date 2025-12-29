@@ -127,3 +127,12 @@ void SaveManager::save()
     std::cout << "[Save] Saved. maxUnlockedLevel = "
               << maxUnlockedLevel << "\n";
 }
+
+void SaveManager::unlockLevel(int level)
+{
+    if (level <= maxUnlockedLevel)
+        return;
+
+    maxUnlockedLevel = level;
+    save();
+}

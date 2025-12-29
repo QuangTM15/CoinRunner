@@ -1,8 +1,8 @@
-#include "core/App.hpp"
+#include "system/App.hpp"
 #include "scene/PlayScene.hpp"
 #include "scene/MainMenuScene.hpp"
 #include <iostream>
-#include <core/AudioManager.hpp>
+#include <system/AudioManager.hpp>
 
 App::App()
 : window(sf::VideoMode({1280u, 720u}), "CoinRunner")

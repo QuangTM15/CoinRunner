@@ -2,7 +2,7 @@
 #include "scene/PlayScene.hpp"
 #include "scene/SceneManager.hpp"
 #include <iostream>
-#include <core/AudioManager.hpp>
+#include <system/AudioManager.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)

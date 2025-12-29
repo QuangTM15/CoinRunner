@@ -1,7 +1,7 @@
 #include "scene/PlayScene.hpp"
 #include "scene/SceneManager.hpp"
 #include <iostream>
-#include "core/AudioManager.hpp"
+#include "system/AudioManager.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window)
 : Scene(mgr)

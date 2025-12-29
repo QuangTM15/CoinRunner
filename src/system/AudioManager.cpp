@@ -1,4 +1,4 @@
-#include "core/AudioManager.hpp"
+#include "system/AudioManager.hpp"
 #include <iostream>
 
 AudioManager& AudioManager::get()
@@ -13,7 +13,7 @@ void AudioManager::init()
     if (!bg.openFromFile("asset/musics/MusicBackGround.mp3"))
         std::cout << "[Audio] Failed to load MusicBackGround.mp3\n";
 
-    bg.setLooping(true); // ✅ SFML 3
+    bg.setLooping(true);
     bg.setVolume(35.f);
 
     // ---- SFX ----

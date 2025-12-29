@@ -8,6 +8,7 @@
             "args": [
                 "src/main.cpp",
                 "src/core/*.cpp",
+                "src/system/*.cpp",
                 "src/scene/*.cpp",
 
                 "-Iinclude",

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "core/Config.hpp"
 #include <cmath>
-#include "core/AudioManager.hpp"
+#include "system/AudioManager.hpp"
 // ------------------------------------------------
 // Helper intersects for SFML3
 // ------------------------------------------------

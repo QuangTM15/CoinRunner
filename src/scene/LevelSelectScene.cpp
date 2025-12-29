@@ -33,8 +33,40 @@ void LevelSelectScene::onExit()
 
 void LevelSelectScene::initAssets()
 {
-    if (!font.openFromFile("asset/ui/fonts/pixel.ttf"))
+    if (!uiFont.openFromFile("asset/ui/fonts/pixel.ttf"))
         std::cout << "[LevelSelect] Font load FAILED\n";
+
+    // ---- PANEL TEXTURE ----
+    if (!panelTexture.loadFromFile("asset/ui/panels/panel.png"))
+        std::cout << "[LevelSelect] Panel load FAILED\n";
+
+    panelSprite.emplace(panelTexture);
+
+    // origin giữa panel
+    panelSprite->setOrigin({
+        panelTexture.getSize().x * 0.5f,
+        panelTexture.getSize().y * 0.5f
+    });
+
+    // ===== SCALE PANEL =====
+    const float targetWidth  = window.getSize().x * 1.2f;
+    const float targetHeight = window.getSize().y * 1.2f;
+
+    const sf::Vector2f panelSize(
+        static_cast<float>(panelTexture.getSize().x),
+        static_cast<float>(panelTexture.getSize().y)
+    );
+
+    panelSprite->setScale({
+        targetWidth  / panelSize.x,
+        targetHeight / panelSize.y
+    });
+
+    // position giữa màn hình
+    panelSprite->setPosition({
+        window.getSize().x * 0.5f,
+        window.getSize().y * 0.5f
+    });
 }
 
 void LevelSelectScene::initLevelItems()
@@ -42,57 +74,125 @@ void LevelSelectScene::initLevelItems()
     items.clear();
     items.reserve(3);
 
+    constexpr unsigned int CHAR_SIZE = 12;
+    const sf::Vector2f TEXT_SCALE{2.f, 2.f};
+    const sf::Vector2f BTN_SCALE{12.f, 4.f};
+
     for (int i = 1; i <= 3; ++i)
     {
-        bool unlocked = (i <= maxUnlockedLevel);
+        LevelItem item;
+        item.level = i;
+        item.unlocked = (i <= maxUnlockedLevel);
 
+        // ---- TEXT ----
         std::string label = "LEVEL " + std::to_string(i);
-        if (!unlocked) label += " (LOCKED)";
+        item.text.emplace(uiFont, label, CHAR_SIZE);
+        item.text->setScale(TEXT_SCALE);
 
-        sf::Text text(font, label, 16);
-        text.setScale({2.f, 2.f});
+        // ---- TEXTURES ----
+        if (!item.texNormal.loadFromFile("asset/ui/buttons/btn_normal.png"))
+        {
+            std::cout << "[LevelSelect] Failed to load btn_normal.png\n";
+        }
+        if (!item.texHover.loadFromFile("asset/ui/buttons/btn_hover.png"))
+        {
+            std::cout << "[LevelSelect] Failed to load btn_hover.png\n";
+        }
+        if (!item.texPressed.loadFromFile("asset/ui/buttons/btn_pressed.png"))
+        {
+            std::cout << "[LevelSelect] Failed to load btn_pressed.png\n";
+        }
+        if (!item.texLocked.loadFromFile("asset/ui/buttons/btn_lock.png"))
+        {
+            std::cout << "[LevelSelect] Failed to load btn_lock.png\n";
+        }
 
-        items.push_back(LevelItem{
-            i,
-            unlocked,
-            std::move(text)
-        });
+        // ---- SPRITE ----
+        if (item.unlocked)
+        {
+            item.sprite.emplace(item.texNormal);
+            item.state = ButtonState::Normal;
+        }
+        else
+        {
+            item.sprite.emplace(item.texLocked);
+            item.state = ButtonState::Locked;
+        }
+
+        item.sprite->setScale(BTN_SCALE);
+
+        items.push_back(std::move(item));
     }
 
-    // BACK
-    backText.emplace(font, "BACK", 16);
-    backText->setScale({2.f, 2.f});
+    // ===== BACK BUTTON =====
+    backItem.level = -1;
+    backItem.unlocked = true;
+
+    backItem.text.emplace(uiFont, "BACK", CHAR_SIZE);
+    backItem.text->setScale(TEXT_SCALE);
+
+    if (!backItem.texNormal.loadFromFile("asset/ui/buttons/btn_normal.png"))
+    {
+        std::cout << "[LevelSelect] Failed to load btn_normal.png\n";
+    }
+    if (!backItem.texHover.loadFromFile("asset/ui/buttons/btn_hover.png"))
+    {
+        std::cout << "[LevelSelect] Failed to load btn_hover.png\n";
+    }
+    if (!backItem.texPressed.loadFromFile("asset/ui/buttons/btn_pressed.png"))
+    {
+        std::cout << "[LevelSelect] Failed to load btn_pressed.png\n";
+    }
+
+    backItem.sprite.emplace(backItem.texNormal);
+    backItem.sprite->setScale(BTN_SCALE);
 }
 
 void LevelSelectScene::initLayout()
 {
-    float cx = window.getSize().x * 0.5f;
-    float startY = 200.f;
-    float gap = 80.f;
+    const float cx = window.getSize().x * 0.5f;
+    const float sy = window.getSize().y * 0.25f;
+    const float gap = 120.f;
 
+    // ---- LEVELS ----
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        auto& txt = items[i].text;
-        auto b = txt.getLocalBounds();
+        auto& item = items[i];
+
+        auto& btn = *item.sprite;
+        auto bb = btn.getLocalBounds();
+        btn.setOrigin({bb.size.x * 0.5f, bb.size.y * 0.5f});
+        btn.setPosition({cx, sy + i * gap});
+
+        auto& txt = *item.text;
+        auto tb = txt.getLocalBounds();
         txt.setOrigin({
-            b.position.x + b.size.x * 0.5f,
-            b.position.y + b.size.y * 0.5f
+            tb.position.x + tb.size.x * 0.5f,
+            tb.position.y + tb.size.y * 0.5f
         });
-        txt.setPosition({cx, startY + i * gap});
+        txt.setPosition(btn.getPosition());
     }
 
-    if (backText)
+    // ---- BACK ----
     {
-        auto b = backText->getLocalBounds();
-        backText->setOrigin({
-            b.position.x + b.size.x * 0.5f,
-            b.position.y + b.size.y * 0.5f
-        });
-        backText->setPosition(
-            {cx,
+        auto& btn = *backItem.sprite;
+        auto bb = btn.getLocalBounds();
+        btn.setOrigin({bb.size.x * 0.5f, bb.size.y * 0.5f});
+        btn.setPosition({
+            cx,
             window.getSize().y - 120.f
         });
+
+        auto& txt = *backItem.text;
+        auto tb = txt.getLocalBounds();
+        txt.setOrigin({
+            tb.position.x + tb.size.x * 0.5f,
+            tb.position.y + tb.size.y * 0.5f
+        });
+        txt.setPosition(btn.getPosition());
     }
+
+    updateVisual();
 }
 
 void LevelSelectScene::updateVisual()
@@ -100,26 +200,53 @@ void LevelSelectScene::updateVisual()
     for (int i = 0; i < (int)items.size(); ++i)
     {
         auto& item = items[i];
-        if (!item.unlocked)
+        if (item.state == ButtonState::Locked)
         {
-            item.text.setFillColor(sf::Color(120, 120, 120));
+            item.sprite->setTexture(item.texLocked);
+            item.text->setFillColor(sf::Color(120,120,120));
+            continue;
         }
-        else if (i == selectedIndex)
+
+        item.text->setFillColor(
+            i == selectedIndex
+                ? sf::Color(255,220,40)
+                : sf::Color::White
+        );
+
+        switch (item.state)
         {
-            item.text.setFillColor(sf::Color(255, 220, 40));
-        }
-        else
-        {
-            item.text.setFillColor(sf::Color::White);
+        case ButtonState::Normal:
+            item.sprite->setTexture(item.texNormal);
+            break;
+        case ButtonState::Hover:
+            item.sprite->setTexture(item.texHover);
+            break;
+        case ButtonState::Pressed:
+            item.sprite->setTexture(item.texPressed);
+            break;
+        default: break;
         }
     }
 
-    if (backText)
+    // ---- BACK ----
+    backItem.text->setFillColor(
+        selectedIndex == (int)items.size()
+            ? sf::Color(255,220,40)
+            : sf::Color::White
+    );
+
+    switch (backItem.state)
     {
-        if (selectedIndex == (int)items.size())
-            backText->setFillColor(sf::Color(255, 220, 40));
-        else
-            backText->setFillColor(sf::Color::White);
+    case ButtonState::Normal:
+        backItem.sprite->setTexture(backItem.texNormal);
+        break;
+    case ButtonState::Hover:
+        backItem.sprite->setTexture(backItem.texHover);
+        break;
+    case ButtonState::Pressed:
+        backItem.sprite->setTexture(backItem.texPressed);
+        break;
+    default: break;
     }
 }
 
@@ -148,16 +275,30 @@ void LevelSelectScene::handleKeyboard(sf::Keyboard::Key key)
 {
     int total = items.size() + 1; // + BACK
 
+    // ---------- MOVE SELECTION ----------
     if (key == sf::Keyboard::Key::Up)
     {
-        selectedIndex = (selectedIndex - 1 + total) % total;
+        do {
+            selectedIndex = (selectedIndex - 1 + total) % total;
+        }
+        while (
+            selectedIndex < (int)items.size() &&
+            !items[selectedIndex].unlocked
+        );
     }
     else if (key == sf::Keyboard::Key::Down)
     {
-        selectedIndex = (selectedIndex + 1) % total;
+        do {
+            selectedIndex = (selectedIndex + 1) % total;
+        }
+        while (
+            selectedIndex < (int)items.size() &&
+            !items[selectedIndex].unlocked
+        );
     }
     else if (key == sf::Keyboard::Key::Enter)
     {
+        // ---- BACK ----
         if (selectedIndex == (int)items.size())
         {
             manager.change(
@@ -166,6 +307,7 @@ void LevelSelectScene::handleKeyboard(sf::Keyboard::Key key)
             return;
         }
 
+        // ---- LEVEL ----
         auto& item = items[selectedIndex];
         if (item.unlocked)
         {
@@ -183,32 +325,78 @@ void LevelSelectScene::handleKeyboard(sf::Keyboard::Key key)
         return;
     }
 
+    // ---------- RESET STATES ----------
+    for (auto& it : items)
+    {
+        if (it.unlocked)
+            it.state = ButtonState::Normal;
+    }
+    backItem.state = ButtonState::Normal;
+
+    // ---------- SET HOVER ----------
+    if (selectedIndex == (int)items.size())
+    {
+        backItem.state = ButtonState::Hover;
+    }
+    else
+    {
+        items[selectedIndex].state = ButtonState::Hover;
+    }
+
     updateVisual();
 }
 
 void LevelSelectScene::handleMouseMove(sf::Vector2f pos)
 {
+    // ---- LEVEL ITEMS ----
     for (int i = 0; i < (int)items.size(); ++i)
     {
-        if (items[i].text.getGlobalBounds().contains(pos))
+        auto& item = items[i];
+
+        if (item.sprite &&
+            item.sprite->getGlobalBounds().contains(pos))
         {
+            // ❌ level lock thì không hover
+            if (!item.unlocked)
+                return;
+
             selectedIndex = i;
+
+            // reset state
+            for (auto& it : items)
+                if (it.unlocked)
+                    it.state = ButtonState::Normal;
+
+            item.state = ButtonState::Hover;
+            backItem.state = ButtonState::Normal;
+
             updateVisual();
             return;
         }
     }
 
-    if (backText && backText->getGlobalBounds().contains(pos))
+    // ---- BACK ----
+    if (backItem.sprite &&
+        backItem.sprite->getGlobalBounds().contains(pos))
     {
         selectedIndex = items.size();
+
+        for (auto& it : items)
+            if (it.unlocked)
+                it.state = ButtonState::Normal;
+
+        backItem.state = ButtonState::Hover;
+
         updateVisual();
+        return;
     }
 }
 
 void LevelSelectScene::handleMouseClick(sf::Vector2f pos)
 {
-    // BACK
-    if (backText && backText->getGlobalBounds().contains(pos))
+    // ---- BACK ----
+    if (backItem.sprite &&
+        backItem.sprite->getGlobalBounds().contains(pos))
     {
         manager.change(
             std::make_unique<MainMenuScene>(manager, window)
@@ -216,17 +404,19 @@ void LevelSelectScene::handleMouseClick(sf::Vector2f pos)
         return;
     }
 
-    // LEVEL
+    // ---- LEVEL ----
     for (auto& item : items)
     {
-        if (item.text.getGlobalBounds().contains(pos))
+        if (item.sprite &&
+            item.sprite->getGlobalBounds().contains(pos))
         {
-            if (item.unlocked)
-            {
-                manager.change(
-                    std::make_unique<PlayScene>(manager, window, item.level)
-                );
-            }
+            // không click level bị lock
+            if (!item.unlocked)
+                return;
+
+            manager.change(
+                std::make_unique<PlayScene>(manager, window, item.level)
+            );
             return;
         }
     }
@@ -238,9 +428,21 @@ void LevelSelectScene::update(float) {}
 
 void LevelSelectScene::render(sf::RenderWindow& window)
 {
-    for (auto& item : items)
-        window.draw(item.text);
+    if (panelSprite)
+        window.draw(*panelSprite);
 
-    if (backText)
-        window.draw(*backText);
+    for (auto& item : items)
+    {
+        if (item.sprite)
+            window.draw(*item.sprite);
+
+        if (item.text)
+            window.draw(*item.text);
+    }
+
+    if (backItem.sprite)
+        window.draw(*backItem.sprite);
+
+    if (backItem.text)
+        window.draw(*backItem.text);
 }

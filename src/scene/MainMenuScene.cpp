@@ -4,6 +4,7 @@
 #include <iostream>
 #include <system/AudioManager.hpp>
 #include <scene/LevelSelectScene.hpp>
+#include <ui/UITheme.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)
@@ -47,9 +48,13 @@ void MainMenuScene::update(float) {}
 
 void MainMenuScene::render(sf::RenderWindow& window)
 {
+    // vẽ panel
     if (panelSprite)
         window.draw(*panelSprite);
 
+    // overlay tối rất nhẹ
+    UITheme::drawOverlay(window);
+    // vẽ items
     for (auto& item : items)
     {
         if (item.sprite)
@@ -104,9 +109,9 @@ void MainMenuScene::initMenuItems()
 {
     items.clear();
 
-    constexpr unsigned int CHAR_SIZE = 12;
-    const sf::Vector2f TEXT_SCALE{2.f, 2.f};
-    const sf::Vector2f BTN_SCALE{12.f, 4.f};
+    constexpr unsigned int CHAR_SIZE = UITheme::FONT_SIZE;
+    const sf::Vector2f TEXT_SCALE{UITheme::TEXT_SCALE_NORMAL, UITheme::TEXT_SCALE_NORMAL};
+    const sf::Vector2f BTN_SCALE{UITheme::BTN_SCALE_NORMAL.x, UITheme::BTN_SCALE_NORMAL.y};
 
     auto makeItem = [&](const std::string& label, std::function<void()> action)
     {
@@ -114,7 +119,7 @@ void MainMenuScene::initMenuItems()
 
         item.text.emplace(uiFont, label, CHAR_SIZE);
         item.text->setScale(TEXT_SCALE);
-        item.text->setFillColor(sf::Color::White);
+        item.text->setFillColor(UITheme::TEXT_NORMAL);
 
         if (!item.texNormal.loadFromFile("asset/ui/buttons/btn_normal.png"))
         {
@@ -273,8 +278,8 @@ void MainMenuScene::updateVisual()
         {
             item.text->setFillColor(
                 i == selectedIndex
-                    ? sf::Color(255, 220, 40)
-                    : sf::Color::White
+                    ? UITheme::TEXT_HOVER
+                    : UITheme::TEXT_NORMAL
             );
         }
 

@@ -3,6 +3,7 @@
 #include "scene/MainMenuScene.hpp"
 #include "scene/PlayScene.hpp"
 #include "system/SaveManager.hpp"
+#include <ui/UITheme.hpp>
 
 #include <iostream>
 
@@ -74,9 +75,9 @@ void LevelSelectScene::initLevelItems()
     items.clear();
     items.reserve(3);
 
-    constexpr unsigned int CHAR_SIZE = 12;
-    const sf::Vector2f TEXT_SCALE{2.f, 2.f};
-    const sf::Vector2f BTN_SCALE{12.f, 4.f};
+    constexpr unsigned int CHAR_SIZE = UITheme::FONT_SIZE;
+    const sf::Vector2f TEXT_SCALE{UITheme::TEXT_SCALE_NORMAL, UITheme::TEXT_SCALE_NORMAL};
+    const sf::Vector2f BTN_SCALE{UITheme::BTN_SCALE_NORMAL.x, UITheme::BTN_SCALE_NORMAL.y};
 
     for (int i = 1; i <= 3; ++i)
     {
@@ -203,14 +204,14 @@ void LevelSelectScene::updateVisual()
         if (item.state == ButtonState::Locked)
         {
             item.sprite->setTexture(item.texLocked);
-            item.text->setFillColor(sf::Color(120,120,120));
+            item.text->setFillColor(UITheme::TEXT_LOCKED);
             continue;
         }
 
         item.text->setFillColor(
             i == selectedIndex
-                ? sf::Color(255,220,40)
-                : sf::Color::White
+                ? UITheme::TEXT_HOVER
+                : UITheme::TEXT_NORMAL
         );
 
         switch (item.state)
@@ -231,8 +232,8 @@ void LevelSelectScene::updateVisual()
     // ---- BACK ----
     backItem.text->setFillColor(
         selectedIndex == (int)items.size()
-            ? sf::Color(255,220,40)
-            : sf::Color::White
+            ? UITheme::TEXT_HOVER
+            : UITheme::TEXT_NORMAL
     );
 
     switch (backItem.state)
@@ -428,21 +429,26 @@ void LevelSelectScene::update(float) {}
 
 void LevelSelectScene::render(sf::RenderWindow& window)
 {
+    // vẽ panel
     if (panelSprite)
         window.draw(*panelSprite);
+    // overlay tối rất nhẹ
+    UITheme::drawOverlay(window);
 
+    // vẽ items
     for (auto& item : items)
     {
         if (item.sprite)
             window.draw(*item.sprite);
 
         if (item.text)
-            window.draw(*item.text);
+        {
+            UITheme::drawTextWithShadow(window, *item.text);
+        }
     }
 
-    if (backItem.sprite)
+    if (backItem.sprite) {
         window.draw(*backItem.sprite);
-
-    if (backItem.text)
-        window.draw(*backItem.text);
+    }
+    if (backItem.text) UITheme::drawTextWithShadow(window, *backItem.text);
 }

@@ -13,4 +13,8 @@ public:
 
 private:
     sf::RenderWindow& window;
+    sf::Font font;
+    std::vector<sf::Text> levelTexts;
+    std::optional<sf::Text> backText;
+    int maxUnlockedLevel = 1;
 };

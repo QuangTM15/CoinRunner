@@ -1,6 +1,7 @@
 #include "scene/SceneManager.hpp"
 #include <iostream>
 
+
 void SceneManager::change(std::unique_ptr<Scene> scene)
 {
     if (current)

@@ -3,6 +3,7 @@
 #include "scene/SceneManager.hpp"
 #include <iostream>
 #include <system/AudioManager.hpp>
+#include <scene/LevelSelectScene.hpp>
 
 MainMenuScene::MainMenuScene(SceneManager& mgr, sf::RenderWindow& win)
 : Scene(mgr)
@@ -140,7 +141,9 @@ void MainMenuScene::initMenuItems()
         manager.change(std::make_unique<PlayScene>(manager, window));
     });
 
-    makeItem("LEVEL SELECT", [](){});
+    makeItem("LEVEL SELECT", [this](){
+        manager.change(std::make_unique<LevelSelectScene>(manager, window));
+    });
 
     makeItem("MUSIC: ON", [this]()
     {

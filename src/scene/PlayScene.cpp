@@ -25,9 +25,11 @@ void PlayScene::update(float dt)
         int nextLevel = game.getCurrentLevel() + 1;
         SaveManager::get().unlockLevel(nextLevel);
     }
+    hud.setLife(game.getLife());
+    hud.setCoin(game.getCoin());
 }
 
-void PlayScene::render(sf::RenderWindow&)
+void PlayScene::render(sf::RenderWindow& window)
 {
     static bool once = false;
     if (!once)
@@ -36,6 +38,7 @@ void PlayScene::render(sf::RenderWindow&)
         once = true;
     }
     game.render();
+    hud.draw(window);
 }
 
 void PlayScene::onEnter()

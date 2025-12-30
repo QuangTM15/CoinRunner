@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.hpp"
 #include "../core/Game.hpp"
+#include "../ui/HUD.hpp"
 
 class PlayScene : public Scene {
 public:
@@ -14,4 +15,5 @@ public:
 
 private:
     Game game;
+    HUD  hud;
 };

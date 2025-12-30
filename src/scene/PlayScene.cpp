@@ -4,6 +4,8 @@
 #include "system/AudioManager.hpp"
 #include "system/SaveManager.hpp"
 #include "scene/PauseScene.hpp"
+#include "ui/HUD.hpp"
+#include "scene/GameOverScene.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel)
 : Scene(mgr)
@@ -28,6 +30,21 @@ void PlayScene::handleEvent(const sf::Event& e)
 void PlayScene::update(float dt)
 {
     game.update(dt);
+
+    // ===== GAME OVER (CHẶN NGAY) =====
+    if (game.getLife() <= 0)
+    {
+        manager.change(
+            std::make_unique<GameOverScene>(
+                manager,
+                window,
+                game.getCurrentLevel(),
+                game.getCoin()
+            )
+        );
+        return;
+    }
+    // ===== LEVEL COMPLETED =====
     if (game.isLevelCompleted())
     {
         int nextLevel = game.getCurrentLevel() + 1;

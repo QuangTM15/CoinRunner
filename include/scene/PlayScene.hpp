@@ -3,9 +3,10 @@
 #include "../core/Game.hpp"
 #include "../ui/HUD.hpp"
 
+
 class PlayScene : public Scene {
 public:
-    PlayScene(SceneManager& mgr, sf::RenderWindow& window, int startLevel = 1);
+    PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel = 1);
 
     void handleEvent(const sf::Event& e) override;
     void update(float dt) override;
@@ -14,6 +15,7 @@ public:
     void onExit() override;
 
 private:
+    sf::RenderWindow& window;
     Game game;
     HUD  hud;
 };

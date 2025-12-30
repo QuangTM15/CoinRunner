@@ -115,7 +115,7 @@ void MainMenuScene::initMenuItems()
 
     auto makeItem = [&](const std::string& label, std::function<void()> action)
     {
-        MenuItem item;
+        Button item;
 
         item.text.emplace(uiFont, label, CHAR_SIZE);
         item.text->setScale(TEXT_SCALE);

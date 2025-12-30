@@ -4,13 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <optional>
+#include "ui/Button.hpp"
 
-enum class ButtonState {
-    Normal,
-    Hover,
-    Pressed,
-    Locked
-};
 
 class LevelSelectScene : public Scene {
 public:

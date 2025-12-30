@@ -3,17 +3,29 @@
 #include <iostream>
 #include "system/AudioManager.hpp"
 #include "system/SaveManager.hpp"
+#include "scene/PauseScene.hpp"
 
-PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& window, int startLevel)
+PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel)
 : Scene(mgr)
+, window(win)
 , game(window.getSize().x, window.getSize().y)
 {
     game.bindWindow(window);
     game.startLevel(startLevel);
 }
 
-void PlayScene::handleEvent(const sf::Event&)
+void PlayScene::handleEvent(const sf::Event& e)
 {
+    // ESC → PAUSE
+    if (e.is<sf::Event::KeyPressed>() &&
+        e.getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
+    {
+        manager.push(
+            std::make_unique<PauseScene>(manager, window)
+        );
+        return;
+    }
+    // Forward event to game
     game.processEvents();
 }
 

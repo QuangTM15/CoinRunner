@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 #include <optional>
+#include "ui/Button.hpp"
 
 class MainMenuScene : public Scene {
 public:
@@ -15,28 +16,6 @@ public:
     void handleEvent(const sf::Event& e) override;
     void update(float dt) override;
     void render(sf::RenderWindow& window) override;
-
-private:
-
-    enum class ButtonState {
-        Normal,
-        Hover,
-        Pressed
-    };
-
-    struct MenuItem
-    {
-        std::optional<sf::Text>   text;
-        std::optional<sf::Sprite> sprite;
-
-        sf::Texture texNormal;
-        sf::Texture texHover;
-        sf::Texture texPressed;
-
-        ButtonState state = ButtonState::Normal;
-
-        std::function<void()> action;
-    };
 
 private:
     void initAssets();
@@ -56,7 +35,7 @@ private:
     sf::Texture panelTexture;
     std::optional<sf::Sprite> panelSprite;
 
-    std::vector<MenuItem> items;
+    std::vector<Button> items;
     int selectedIndex = 0;
     bool musicOn = true;
 };

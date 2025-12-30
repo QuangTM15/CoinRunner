@@ -209,16 +209,13 @@ void Player::updateAnimation(float dt)
 
 void Player::onHitTrap()
 {
-    life--;
-    if (life <= 0)
-        alive = false;
+    controlLock = 0.2f;
 }
 
 void Player::respawn(const sf::Vector2f& pos)
 {
     sprite.setPosition(pos);
     velocity = {0.f, 0.f};
-    alive = true;
     canJump = true;
     controlLock = 0.1f;
 }

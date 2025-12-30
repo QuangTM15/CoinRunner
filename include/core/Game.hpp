@@ -6,6 +6,7 @@
 #include "TileMap.hpp"
 #include "Coin.hpp"
 #include "Trap.hpp"
+#include "core/Config.hpp"
 
 class Game {
 public:
@@ -22,6 +23,8 @@ public:
     bool isEndGame() const { return reachedEndGame; }
     int  getCurrentLevel() const { return currentLevel; }
     void startLevel(int level);
+    int getLife() const { return life; }
+    int getCoin() const { return coinCount; }
 
 private:
 
@@ -48,6 +51,7 @@ private:
 
 
     int coinCount = 0;
+    int life = Config::PLAYER_LIFE;
     // Checkpoint
     sf::Vector2f lastCheckpoint;
 

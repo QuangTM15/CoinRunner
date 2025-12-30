@@ -28,10 +28,8 @@ public:
     void onHitTrap();              // chạm trap = chết ngay
     void respawn(const sf::Vector2f& pos);
 
-    bool isAlive() const { return alive; }
     bool facingLeft = false;
 
-    int life = 7;
     float controlLock = 0.f; 
     
     bool didJump() const { return jumpedThisFrame; }
@@ -73,7 +71,5 @@ private:
     float maxFallSpeed;
 
     bool canJump = true;
-
-    bool alive = true;
     bool jumpedThisFrame = false;
 };

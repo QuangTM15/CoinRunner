@@ -9,7 +9,7 @@ namespace Config {
     inline constexpr float PLAYER_MAX_FALL_SPEED = 900.f;
     inline constexpr float PLAYER_SCALE = 2.f;
     inline constexpr float PLAYER_CONTROL_LOCK_TIME = 0.1f;
-    inline constexpr int PLAYER_INITIAL_LIFE = 7;
+    inline constexpr int PLAYER_LIFE = 7;
     inline constexpr float PLAYER_INVINCIBILITY_TIME = 1.0f;
 
 

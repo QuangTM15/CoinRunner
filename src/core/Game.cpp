@@ -124,10 +124,16 @@ void Game::update(float dt)
     {
         if (intersectsRect(pbox, r))
         {
+            life--;
+
             player.onHitTrap();
-            AudioManager::get().playHit(); 
+            AudioManager::get().playHit();
             startCameraShake(0.25f, 5.f);
-            player.respawn(lastCheckpoint);
+
+            if (life > 0)
+            {
+                player.respawn(lastCheckpoint);
+            }
         }
     }
 
@@ -193,10 +199,17 @@ void Game::updateTraps(float dt)
 
         if (intersectsRect(player.getBounds(), t.getBounds()))
         {
+            life--;
+
             player.onHitTrap();
-            AudioManager::get().playHit(); 
+            AudioManager::get().playHit();
             startCameraShake(0.2f, 4.f);
-            player.respawn(lastCheckpoint);
+
+            if (life > 0)
+            {
+                player.respawn(lastCheckpoint);
+            }
+            
         }
     }
 }
@@ -293,6 +306,10 @@ void Game::loadLevel(int level)
 
     player.setPosition(spawn);
     lastCheckpoint = spawn;
+
+    life = Config::PLAYER_LIFE;
+    coinCount = 0;
+
     touchedGoal = false;
     levelCompleted = false;
 
@@ -316,6 +333,8 @@ void Game::processEvents()
             window->close();
     }
 }
+
+//API to bind window 
 void Game::bindWindow(sf::RenderWindow& win)
 {
     window = &win;
@@ -339,6 +358,8 @@ void Game::bindWindow(sf::RenderWindow& win)
 
     window->setView(camera);
 }
+
+//Camera shake
 void Game::startCameraShake(float duration, float power)
 {
     shakeActive = true;

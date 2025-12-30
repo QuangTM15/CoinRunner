@@ -6,6 +6,7 @@
 #include "scene/PauseScene.hpp"
 #include "ui/HUD.hpp"
 #include "scene/GameOverScene.hpp"
+#include "scene/LevelCompleteScene.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel)
 : Scene(mgr)
@@ -44,11 +45,20 @@ void PlayScene::update(float dt)
         );
         return;
     }
-    // ===== LEVEL COMPLETED =====
+    // ===== LEVEL COMPLETE =====
     if (game.isLevelCompleted())
     {
-        int nextLevel = game.getCurrentLevel() + 1;
-        SaveManager::get().unlockLevel(nextLevel);
+        SaveManager::get().unlockLevel(game.getCurrentLevel() + 1);
+
+        manager.change(
+            std::make_unique<LevelCompleteScene>(
+                manager,
+                window,
+                game.getCurrentLevel(),
+                game.getCoin()
+            )
+        );
+        return;
     }
     hud.setLife(game.getLife());
     hud.setCoin(game.getCoin());

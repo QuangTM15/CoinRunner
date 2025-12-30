@@ -23,9 +23,6 @@ void PlayScene::handleEvent(const sf::Event& e)
         manager.push(std::make_unique<PauseScene>(manager, window));
         return;
     }
-
-    // Forward event to game
-    game.processEvents();
 }
 
 void PlayScene::update(float dt)

@@ -16,7 +16,6 @@ public:
 
     // 🔹 API
     void bindWindow(sf::RenderWindow& win);
-    void processEvents();
     void update(float dt);
     void render();
     bool isLevelCompleted() const { return levelCompleted; }

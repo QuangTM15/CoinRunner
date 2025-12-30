@@ -322,18 +322,6 @@ void Game::startLevel(int level)
     loadLevel(level);
 }
 
-// ------------------------------------------------
-// PROCESS EVENTS
-// ------------------------------------------------
-void Game::processEvents()
-{
-    while (auto evt = window->pollEvent())
-    {
-        if (evt->is<sf::Event::Closed>())
-            window->close();
-    }
-}
-
 //API to bind window 
 void Game::bindWindow(sf::RenderWindow& win)
 {

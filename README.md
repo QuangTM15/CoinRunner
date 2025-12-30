@@ -79,7 +79,10 @@ Saved data example:
 Only level unlock progress is saved.
 Coins, lives, and checkpoints are not saved by design.
 
-🔧 Build & Run
+---
+
+## 🔧 Build & Run
+
 Requirements
 C++17 compatible compiler
 
@@ -95,12 +98,15 @@ g++ src/main.cpp src/core/*.cpp src/system/*.cpp src/scene/*.cpp src/ui/*.cpp \
 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio \
 -std=c++17 -O2 -o CoinRunner.exe
 Or simply run the provided executable inside the build folder.
+---
 
-🎵 Assets & Credits
+## 🎵 Assets & Credits
 Fonts, sounds, and textures are used for educational purposes.
 All assets belong to their respective creators.
 
-🚀 Project Status
+---
+
+## 🚀 Project Status
 ✔ Core gameplay complete
 
 ✔ UI & scene flow complete
@@ -111,7 +117,9 @@ All assets belong to their respective creators.
 
 This project is considered finished and is not planned for further expansion.
 
-👤 Author
+---
+
+## 👤 Author
 Developed by a solo developer as a learning and indie game project.
 
 Enjoy the game! 🎉

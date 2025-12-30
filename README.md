@@ -91,13 +91,14 @@ SFML 3.0.2
 
 MinGW / g++
 
-Compile (example)
-bash
+
+```bash
 g++ src/main.cpp src/core/*.cpp src/system/*.cpp src/scene/*.cpp src/ui/*.cpp \
 -Iinclude -I<SFML_INCLUDE_PATH> \
 -L<SFML_LIB_PATH> \
 -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio \
 -std=c++17 -O2 -o CoinRunner.exe
+```
 Or simply run the provided executable inside the build folder.
 ---
 

@@ -75,7 +75,8 @@ Saved data example:
 ```json
 {
   "maxUnlockedLevel": 2
-}
+}```
+
 Only level unlock progress is saved.
 Coins, lives, and checkpoints are not saved by design.
 

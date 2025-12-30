@@ -58,8 +58,5 @@ void App::render()
 
     // 🔥 RESET VIEW cho UI
     window.setView(window.getDefaultView());
-
-    // (sau này vẽ HUD ở đây)
-
     window.display();
 }

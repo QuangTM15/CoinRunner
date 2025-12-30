@@ -16,15 +16,14 @@ PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel)
 
 void PlayScene::handleEvent(const sf::Event& e)
 {
-    // ESC → PAUSE
+    // Pause on Escape key
     if (e.is<sf::Event::KeyPressed>() &&
         e.getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::Escape)
     {
-        manager.push(
-            std::make_unique<PauseScene>(manager, window)
-        );
+        manager.push(std::make_unique<PauseScene>(manager, window));
         return;
     }
+
     // Forward event to game
     game.processEvents();
 }

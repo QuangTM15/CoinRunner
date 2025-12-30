@@ -1,8 +1,9 @@
 #include "scene/SceneManager.hpp"
-#include <iostream>
 
+// ---------------- CHANGE ----------------
 void SceneManager::change(std::unique_ptr<Scene> scene)
 {
+    // exit toàn bộ scene hiện tại
     while (!stack.empty())
     {
         stack.back()->onExit();
@@ -13,12 +14,14 @@ void SceneManager::change(std::unique_ptr<Scene> scene)
     stack.back()->onEnter();
 }
 
+// ---------------- PUSH ----------------
 void SceneManager::push(std::unique_ptr<Scene> scene)
 {
     stack.push_back(std::move(scene));
     stack.back()->onEnter();
 }
 
+// ---------------- POP ----------------
 void SceneManager::pop()
 {
     if (stack.empty())
@@ -28,27 +31,23 @@ void SceneManager::pop()
     stack.pop_back();
 }
 
+// ---------------- EVENT ----------------
 void SceneManager::handleEvent(const sf::Event& e)
 {
     if (!stack.empty())
         stack.back()->handleEvent(e);
 }
 
+// ---------------- UPDATE ----------------
 void SceneManager::update(float dt)
 {
     if (!stack.empty())
         stack.back()->update(dt);
 }
 
+// ---------------- RENDER ----------------
 void SceneManager::render(sf::RenderWindow& window)
 {
-    if (stack.empty())
-    {
-        std::cout << "[SceneManager] render(): EMPTY STACK\n";
-        return;
-    }
-
-    // 🔥 Render từ dưới lên (để Pause overlay lên Play)
     for (auto& s : stack)
         s->render(window);
 }

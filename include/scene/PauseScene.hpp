@@ -11,7 +11,7 @@ class PlayScene;
 
 class PauseScene : public Scene {
 public:
-    PauseScene(SceneManager& mgr, sf::RenderWindow& win);
+    PauseScene(SceneManager& mgr, sf::RenderWindow& win);    
 
     void onEnter() override;
     void onExit() override;
@@ -31,8 +31,7 @@ private:
 
 private:
     sf::RenderWindow& window;
-    PlayScene* playScene; // 👈 QUAN TRỌNG
-
+    
     sf::Font uiFont;
     sf::Texture panelTexture;
     std::optional<sf::Sprite> panelSprite;

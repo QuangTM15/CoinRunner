@@ -101,7 +101,7 @@ void Game::loadObjectsFromMap()
 // UPDATE
 // ------------------------------------------------
 void Game::update(float dt)
-{
+{   
     player.update(dt);
 
     if (player.didJump())

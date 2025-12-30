@@ -7,6 +7,7 @@
 #include "ui/HUD.hpp"
 #include "scene/GameOverScene.hpp"
 #include "scene/LevelCompleteScene.hpp"
+#include "scene/EndGameScene.hpp"
 
 PlayScene::PlayScene(SceneManager& mgr, sf::RenderWindow& win, int startLevel)
 : Scene(mgr)
@@ -42,6 +43,14 @@ void PlayScene::update(float dt)
                 game.getCurrentLevel(),
                 game.getCoin()
             )
+        );
+        return;
+    }
+    // ===== END GAME =====
+    if (game.isLevelCompleted() && game.isEndGame())
+    {
+        manager.change(
+            std::make_unique<EndGameScene>(manager, window)
         );
         return;
     }
